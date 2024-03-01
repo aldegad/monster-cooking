@@ -6,13 +6,12 @@ using Cinemachine;
 
 public class Player : NetworkBehaviour
 {
-    private float movementSpeed = 10f;
+    private float movementSpeed = 5f;
     private float rotationSpeed = 10f;
 
     private Rigidbody rigid;
     private CinemachineFreeLook virtualCamera;
 
-    private Vector3 inputVector;
     // Start is called before the first frame update
     private void Awake()
     {
@@ -22,57 +21,57 @@ public class Player : NetworkBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (!IsOwner) {
+        if (!IsOwner) 
+        {
             return;
         }
 
         InitializeCamera();
-        AdjustInputForCameraDirection();
     }
 
     private void FixedUpdate()
     {
-        HandleMovement();
+        if (!IsOwner) 
+        {
+            return;
+        }
+
+        Vector3 inputVector = AdjustInputForCameraDirection();
+        HandleMovement(inputVector);
     }
 
     private void InitializeCamera()
     {
         if (virtualCamera == null)
         {
-            virtualCamera = GameObject.Find("PlayerCamera").GetComponent<CinemachineFreeLook>();
-            virtualCamera.Follow = gameObject.transform;
-            virtualCamera.LookAt = gameObject.transform;
+            virtualCamera = GameObject.Find("PlayerFollowCamera").GetComponent<CinemachineFreeLook>();
+            virtualCamera.Follow = transform.Find("CameraFocus").transform;
+            virtualCamera.LookAt = transform.Find("CameraFocus").transform;
         }
     }
 
-    private void AdjustInputForCameraDirection() {
+    private Vector3 AdjustInputForCameraDirection() {
         // 키 입력
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
         Vector3 inputDirection = new Vector3(horizontal, 0, vertical);
 
-        // 카메라 방향에 따른 입력 벡터 조정
-        if (inputDirection != Vector3.zero)
-        {
-            Vector3 cameraForward = Camera.main.transform.forward;
-            Vector3 cameraRight = Camera.main.transform.right;
+        Vector3 cameraForward = Camera.main.transform.forward;
+        Vector3 cameraRight = Camera.main.transform.right;
 
-            // 카메라의 y축 회전만 고려
-            cameraForward.y = 0;
-            cameraRight.y = 0;
-            cameraForward.Normalize();
-            cameraRight.Normalize();
+        // 카메라의 y축 회전만 고려
+        cameraForward.y = 0;
+        cameraRight.y = 0;
+        cameraForward.Normalize();
+        cameraRight.Normalize();
 
-            // 입력 벡터를 카메라 방향으로 변환
-            inputVector = (cameraForward * vertical + cameraRight * horizontal).normalized;
-        }
-        else 
-        {
-            inputVector = inputDirection.normalized;
-        }
+        // 입력 벡터를 카메라 방향으로 변환
+        Vector3 inputVector = (cameraForward * vertical + cameraRight * horizontal).normalized;
+
+        return inputVector;
     }
 
-    private void HandleMovement() {
+    private void HandleMovement(Vector3 inputVector) {
         HandleMovementServerRpc(inputVector);
     }
 
@@ -83,7 +82,11 @@ public class Player : NetworkBehaviour
 
     [ClientRpc]
     private void HandleMovementClientRpc(Vector3 inputVector) {
-        // change direction & movement
+        HandleMovementCore(inputVector);    
+    }
+
+    private void HandleMovementCore(Vector3 inputVector) 
+    {
         if (inputVector != Vector3.zero)
         {
             transform.forward = Vector3.Slerp(transform.forward, inputVector.normalized, rotationSpeed * Time.fixedDeltaTime);
