@@ -15,7 +15,7 @@ public class TestingNetcodeUI : MonoBehaviour
     {
         startHostButton.onClick.AddListener(async () =>
         {
-            string joinCode = await NetworkScript.StartHostWithRelay();
+            string joinCode = await MultiGameManager.Instance.StartHostWithRelay();
             Debug.Log(joinCode);
 
             gameCodeUI.SetGameCodeText($"Game Code: {joinCode}");
@@ -29,7 +29,7 @@ public class TestingNetcodeUI : MonoBehaviour
             relayJoinUI.Show();
             relayJoinUI.JoinCallback(async (joinCode) => {
                 if (joinCode != null) {
-                    bool isJoined = await NetworkScript.StartClientWithRelay(joinCode);
+                    bool isJoined = await MultiGameManager.Instance.StartClientWithRelay(joinCode);
 
                     gameCodeUI.SetGameCodeText($"Game Code: {joinCode}");
                     gameCodeUI.Show();

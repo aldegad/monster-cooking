@@ -22,6 +22,17 @@ public class Player : NetworkBehaviour
         rigid = GetComponent<Rigidbody>();
     }
 
+    private void Start()
+    {
+        if (!IsOwner)
+        {
+            return;
+        }
+        //InitializePlayer();
+        // 카메라는 각자가 각자거를 쓴다. 네트워크로 동기화 할 필요 없음
+        InitializeCamera();
+    }
+
     // Update is called once per frame
     private void Update()
     {
@@ -29,9 +40,6 @@ public class Player : NetworkBehaviour
         {
             return;
         }
-
-        InitializePlayer();
-        InitializeCamera();
 
         inputVector = AdjustInputForCameraDirection();
     }
@@ -60,17 +68,18 @@ public class Player : NetworkBehaviour
     [ClientRpc]
     private void InitializePlayerClientRpc()
     {
+        GameObject picoChan = transform.Find("PicoChan").gameObject;
+        GameObject amy = transform.Find("Amy").gameObject;
+
+        if (IsOwner && !IsHost)
+        {
+            picoChan.SetActive(false);
+            amy.SetActive(true);
+        }
+
+        // 이동 시작 위치 설정
         if (transform.position == Vector3.zero)
         {
-            if (IsHost)
-            {
-                transform.Find("PicoChan").gameObject.SetActive(true);
-            }
-            else
-            {
-                transform.Find("Amy").gameObject.SetActive(true);
-            }
-
             rigid.MovePosition(startPosition);
         }
     }
@@ -117,6 +126,7 @@ public class Player : NetworkBehaviour
 
     [ClientRpc]
     private void HandleMovementClientRpc(Vector3 inputVector) {
+        // 각 클라이언트의 같은 player 오브젝트에 뿌려준다!(맞을걸? 테스트해보자)
         if (inputVector != Vector3.zero)
         {
             transform.forward = Vector3.Slerp(transform.forward, inputVector.normalized, rotationSpeed * Time.fixedDeltaTime);
