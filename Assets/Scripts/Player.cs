@@ -6,6 +6,8 @@ using Cinemachine;
 
 public class Player : NetworkBehaviour
 {
+    [SerializeField] private Vector3 startPosition;
+
     private float movementSpeed = 5f;
     private float rotationSpeed = 10f;
 
@@ -26,6 +28,7 @@ public class Player : NetworkBehaviour
             return;
         }
 
+        InitializePosition();
         InitializeCamera();
     }
 
@@ -40,6 +43,14 @@ public class Player : NetworkBehaviour
         HandleMovement(inputVector);
     }
 
+    private void InitializePosition()
+    {
+        if (transform.position == Vector3.zero)
+        {
+            transform.position = startPosition;
+        }
+        
+    }
     private void InitializeCamera()
     {
         if (virtualCamera == null)
