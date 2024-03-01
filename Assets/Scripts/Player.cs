@@ -14,6 +14,8 @@ public class Player : NetworkBehaviour
     private Rigidbody rigid;
     private CinemachineFreeLook virtualCamera;
 
+    private Vector3 inputVector;
+
     // Start is called before the first frame update
     private void Awake()
     {
@@ -23,13 +25,15 @@ public class Player : NetworkBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (!IsOwner) 
+        if (!IsOwner)
         {
             return;
         }
 
-        InitializePosition();
+        InitializePlayer();
         InitializeCamera();
+
+        inputVector = AdjustInputForCameraDirection();
     }
 
     private void FixedUpdate()
@@ -39,18 +43,38 @@ public class Player : NetworkBehaviour
             return;
         }
 
-        Vector3 inputVector = AdjustInputForCameraDirection();
         HandleMovement(inputVector);
     }
 
-    private void InitializePosition()
+    private void InitializePlayer()
+    {
+        InitializePlayerServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void InitializePlayerServerRpc()
+    {
+        InitializePlayerClientRpc();
+    }
+    
+    [ClientRpc]
+    private void InitializePlayerClientRpc()
     {
         if (transform.position == Vector3.zero)
         {
-            transform.position = startPosition;
+            if (IsHost)
+            {
+                transform.Find("PicoChan").gameObject.SetActive(true);
+            }
+            else
+            {
+                transform.Find("Amy").gameObject.SetActive(true);
+            }
+
+            rigid.MovePosition(startPosition);
         }
-        
     }
+
     private void InitializeCamera()
     {
         if (virtualCamera == null)
@@ -93,11 +117,6 @@ public class Player : NetworkBehaviour
 
     [ClientRpc]
     private void HandleMovementClientRpc(Vector3 inputVector) {
-        HandleMovementCore(inputVector);    
-    }
-
-    private void HandleMovementCore(Vector3 inputVector) 
-    {
         if (inputVector != Vector3.zero)
         {
             transform.forward = Vector3.Slerp(transform.forward, inputVector.normalized, rotationSpeed * Time.fixedDeltaTime);
