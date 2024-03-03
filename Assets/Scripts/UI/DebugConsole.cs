@@ -4,14 +4,14 @@ using System.Collections.Concurrent;
 using UnityEngine;
 using TMPro;
 
-public class ConsoleUI : MonoBehaviour
+public class DebugConsole : MonoBehaviour
 {
     [SerializeField] private TMP_Text consoleText; // Inspector에서 할당
-    //private ConcurrentQueue<string> logMessages = new ConcurrentQueue<string>();
 
     private void Awake()
     {
         consoleText.text = "";
+        DontDestroyOnLoad(gameObject);
     }
 
     private void OnEnable()
@@ -23,15 +23,6 @@ public class ConsoleUI : MonoBehaviour
     {
         Application.logMessageReceived -= HandleLog;
     }
-
-    /*private void Update()
-    {
-        // 메인 스레드에서 로그 메시지 처리
-        while (logMessages.TryDequeue(out string log))
-        {
-            consoleText.text += log + "\n";
-        }
-    }*/
 
     void HandleLog(string logString, string stackTrace, LogType type)
     {
@@ -54,8 +45,5 @@ public class ConsoleUI : MonoBehaviour
 
         string formattedMessage = $"<color={color}>{logString}</color>\n";
         consoleText.text += formattedMessage;
-
-        // 필요한 경우 스택 트레이스도 추가할 수 있습니다:
-        // consoleText.text += stackTrace + "\n";
     }
 }

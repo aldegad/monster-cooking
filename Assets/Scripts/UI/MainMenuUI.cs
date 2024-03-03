@@ -7,21 +7,58 @@ using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using System.Threading.Tasks;
 using Unity.Netcode;
+using UnityEngine.UI;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
 using System;
+using UnityEngine.SceneManagement;
 
-public class MultiGameManager : NetworkBehaviour
+public class MainMenuUI : MonoBehaviour
 {
+    [SerializeField] private Button startHostButton;
+    [SerializeField] private Button startClientButton;
 
-    public static MultiGameManager Instance { get; private set; }
+    [SerializeField] private JoinMultiplayerGameUI joinMultiplayerGameUI;
 
     private void Awake()
     {
-        Instance = this;
+        startHostButton.onClick.AddListener(async () =>
+        {
+            string joinCode = await StartHostWithRelay();
+            Debug.Log($"Host Joined: {joinCode}");
+            NetworkManager.Singleton.SceneManager.LoadScene(SceneManager.Scene.CharacterSelectScene.ToString(), LoadSceneMode.Single);
+        });
+
+        startClientButton.onClick.AddListener(() =>
+        {
+            joinMultiplayerGameUI.Show();
+        });
+        joinMultiplayerGameUI.OnJoinCodeEntered += joinMultiplayerGameUI_OnJoinCodeEntered;
     }
 
-    public async Task<string> StartHostWithRelay(int maxConnections = 5)
+    private void OnDestroy()
+    {
+        joinMultiplayerGameUI.OnJoinCodeEntered -= joinMultiplayerGameUI_OnJoinCodeEntered;
+    }
+
+    private async void joinMultiplayerGameUI_OnJoinCodeEntered(string joinCode)
+    {
+        if (joinCode != null)
+        {
+            bool isJoined = await StartClientWithRelay(joinCode);
+
+            if (isJoined)
+            {
+                Debug.Log($"Client Joined: {joinCode}");
+            }
+            else
+            {
+                Debug.LogError($"Client Join Failed: {joinCode}");
+            }
+        }
+    }
+
+    private async Task<string> StartHostWithRelay(int maxConnections = 5)
     {
         await UnityServices.InitializeAsync();
         if (!AuthenticationService.Instance.IsSignedIn)
@@ -35,7 +72,7 @@ public class MultiGameManager : NetworkBehaviour
         return NetworkManager.Singleton.StartHost() ? joinCode : null;
     }
 
-    public async Task<bool> StartClientWithRelay(string joinCode)
+    private async Task<bool> StartClientWithRelay(string joinCode)
     {
         await UnityServices.InitializeAsync();
         if (!AuthenticationService.Instance.IsSignedIn)
