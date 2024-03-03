@@ -16,7 +16,7 @@ public class MultiGameManager : NetworkBehaviour
 
     public static MultiGameManager Instance { get; private set; }
 
-    public event EventHandler OnPlayerDataNetworkListChanged;
+    //public event EventHandler OnPlayerDataNetworkListChanged;
 
     //private NetworkList<PlayerData> playerDataNetworkList;
 
