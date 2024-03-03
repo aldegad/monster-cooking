@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 001f9826acecdb540ab1c9cf9881b60b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 3.4231672
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 001f9826acecdb540ab1c9cf9881b60b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.00000011920929
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 001f9826acecdb540ab1c9cf9881b60b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 4.6190476
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 001f9826acecdb540ab1c9cf9881b60b, type: 3}
       propertyPath: m_LocalRotation.w
@@ -166,5 +166,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d4ddc07a22e0804284aef164920f59e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 3102449552700294253}
   startPosition: {x: 0, y: 0, z: 0}
+  animator: {fileID: 3102449552700294253}
+  walkSpeed: 0
+  runSpeed: 0
+  crouchSpeed: 0
