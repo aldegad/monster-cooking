@@ -14,6 +14,13 @@ public abstract class CloseWeaponController : MonoBehaviour
 
     protected RaycastHit hitInfo;
 
+    private Player thePlayer;
+
+    private void Start()
+    {
+
+    }
+
     protected void TryAttack()
     {
         if (Input.GetButton("Fire1"))
@@ -29,7 +36,8 @@ public abstract class CloseWeaponController : MonoBehaviour
     protected IEnumerator AttackCoroutine()
     {
         isAttack = true;
-        //currentCloseWeapon.anim.SetTrigger("Attack");
+
+        currentCloseWeapon.thePlayer.AttackAnimation(isAttack);
 
         yield return new WaitForSeconds(currentCloseWeapon.attackDelayA);
         isSwing = true;
@@ -54,11 +62,23 @@ public abstract class CloseWeaponController : MonoBehaviour
     {
         if (Physics.Raycast(transform.position, transform.forward, out hitInfo, currentCloseWeapon.range))
         {
-            Debug.Log("Hi22");
-
             return true;
         }
 
         return false;
+    }
+
+    public virtual void CloseWeaponChange(CloseWeapon _closeWeapon)
+    {
+        if (WeaponManager.currentWeapon != null)
+        {
+            WeaponManager.currentWeapon.gameObject.SetActive(false);
+        }
+
+        currentCloseWeapon = _closeWeapon;
+        WeaponManager.currentWeapon = currentCloseWeapon;
+
+        currentCloseWeapon.transform.localPosition = _closeWeapon.originPos;
+        currentCloseWeapon.gameObject.SetActive(true);
     }
 }

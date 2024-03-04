@@ -18,6 +18,7 @@ public class PickaxeController : CloseWeaponController
 
     private void Start()
     {
+        WeaponManager.currentWeapon = currentCloseWeapon;
     }
 
     protected override IEnumerator HitCoroutine()
@@ -33,10 +34,17 @@ public class PickaxeController : CloseWeaponController
                 }
 
                 isSwing = false;
-                Debug.Log(hitInfo.transform.name);
+                Debug.Log("Mining : " + hitInfo.transform.name);
             }
 
             yield return null;
         }
+    }
+
+    public override void CloseWeaponChange(CloseWeapon _closeWeapon)
+    {
+        base.CloseWeaponChange(_closeWeapon);
+
+        isActivate = true;
     }
 }

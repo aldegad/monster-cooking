@@ -18,5 +18,14 @@ public class CloseWeapon : MonoBehaviour
     public float attackDelayA; // 공격 활성화 시점 - 해당 시점에 닿은 오브젝트 데미지 들어감
     public float attackDelayB; // 공격 비활성화 시점 - 해당 시점에 닿은 오브젝트는 데미지 안들어감
 
-    //public Animator anim; // 애니메이션
+    public Vector3 originPos;
+
+    public Animator anim;
+
+    public Player thePlayer;
+
+    private void Start()
+    {
+        thePlayer = GetComponentInParent<Player>();
+    }
 }
