@@ -10,24 +10,19 @@ public class JoinMultiplayerGameUI : MonoBehaviour
     [SerializeField] private Button cancelJoinButton;
     [SerializeField] private Button submitJoinButton;
 
-    public event UnityEngine.Events.UnityAction<string> OnJoinCodeEntered;
-
     private void Awake()
     {
-        Hide();
-
         cancelJoinButton.onClick.AddListener(() =>
         {
-            OnJoinCodeEntered?.Invoke(null);
             Hide();
         });
 
-        submitJoinButton.onClick.AddListener(() =>
+        submitJoinButton.onClick.AddListener(async() =>
         {
             if (enterJoinCodeInput.text != "")
             {
-                OnJoinCodeEntered?.Invoke(enterJoinCodeInput.text);
                 Hide();
+                await ServerManager.Instance.StartClient(enterJoinCodeInput.text);
             }
         });
     }

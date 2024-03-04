@@ -16,3 +16,4 @@ MonoBehaviour:
   displayName: UnityChan
   icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   introPrefab: {fileID: 100096, guid: 412b92d4feeb9c548bfa98f62c4d1022, type: 3}
+  gamePlayPrefab: {fileID: -1512329532141223334, guid: 412b92d4feeb9c548bfa98f62c4d1022, type: 3}

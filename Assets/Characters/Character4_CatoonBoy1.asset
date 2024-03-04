@@ -16,3 +16,4 @@ MonoBehaviour:
   displayName: CatoonBoy1
   icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   introPrefab: {fileID: 4831751270801450882, guid: 2e1c80361c3a23d4b8c7edc15e837913, type: 3}
+  gamePlayPrefab: {fileID: -8855054107250922566, guid: 2e1c80361c3a23d4b8c7edc15e837913, type: 3}

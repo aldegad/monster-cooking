@@ -16,3 +16,4 @@ MonoBehaviour:
   displayName: CattonBoy2
   icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   introPrefab: {fileID: 4831751270801450882, guid: 74dfef02720bb294e92d4c70a3cae63a, type: 3}
+  gamePlayPrefab: {fileID: -5939446561986661991, guid: 74dfef02720bb294e92d4c70a3cae63a, type: 3}
