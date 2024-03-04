@@ -34,7 +34,6 @@ public class PickaxeController : CloseWeaponController
                 }
 
                 isSwing = false;
-                Debug.Log("Mining : " + hitInfo.transform.name);
             }
 
             yield return null;

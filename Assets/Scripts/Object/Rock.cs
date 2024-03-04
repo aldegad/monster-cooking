@@ -36,8 +36,6 @@ public class Rock : MonoBehaviour
         audioSource.clip = crash_sound;
         audioSource.Play();
 
-        Debug.Log("Rock Destroy!");
-
         Destroy(go_rock, 1f);
     }
 }

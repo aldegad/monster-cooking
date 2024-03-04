@@ -36,8 +36,6 @@ public class Tree : MonoBehaviour
         audioSource.clip = crash_sound;
         audioSource.Play();
 
-        Debug.Log("Tree Destroy!");
-
         Destroy(go_rock, 1f);
     }
 }

@@ -37,10 +37,18 @@ public class WeaponManager : MonoBehaviour
     private PickaxeController thePickaxeController;
 
     private Player thePlayer;
+    Test canvasComponent;
 
     // Start is called before the first frame update
     void Start()
     {
+        // DUmp
+        canvasComponent = GameObject.FindObjectOfType<Test>();
+
+        Debug.Log(canvasComponent + " OK?");
+
+        // DUmp
+
         thePlayer = GetComponentInParent<Player>();
 
         thePlayer.anim.runtimeAnimatorController = currentWeapon.anim.runtimeAnimatorController;
@@ -90,6 +98,11 @@ public class WeaponManager : MonoBehaviour
 
         currentWeaponType = _type;
         isChangeWeapon = false;
+
+        if(canvasComponent)
+        {
+            canvasComponent.CheckTool(_name);
+        }
     }
 
     private void CancelPreWeaponAction()

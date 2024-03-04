@@ -29,7 +29,6 @@ public class HandController : CloseWeaponController
                 }
 
                 isSwing = false;
-                Debug.Log("Punch : " + hitInfo.transform.name);
             }
 
             yield return null;
