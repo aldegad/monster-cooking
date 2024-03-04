@@ -11,8 +11,18 @@ public class Rock : MonoBehaviour
     [SerializeField]
     private GameObject go_rock; // 일반 바위
 
+    [SerializeField]
+    private AudioSource audioSource;
+    [SerializeField]
+    private AudioClip striking_sound;
+    [SerializeField]
+    private AudioClip crash_sound;
+
     public void Mining()
     {
+        audioSource.clip = striking_sound;
+        audioSource.Play();
+
         hp--;
 
         if(hp <= 0)
@@ -23,6 +33,9 @@ public class Rock : MonoBehaviour
 
     private void Destruction()
     {
-        Debug.Log("Rock!");
+        audioSource.clip = crash_sound;
+        audioSource.Play();
+
+        Destroy(go_rock, 1f);
     }
 }

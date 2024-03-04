@@ -7,10 +7,10 @@ using static Unity.IO.LowLevel.Unsafe.AsyncReadManagerMetrics;
 
 public class Player : NetworkBehaviour
 {
+    public Animator anim;
+
     [SerializeField] 
     private Vector3 startPosition;
-    [SerializeField]
-    private Animator animator;
 
     private float movementSpeed = 5f;
     private float rotationSpeed = 10f;
@@ -37,12 +37,11 @@ public class Player : NetworkBehaviour
 
     private float applySpeed;
 
-
     // Start is called before the first frame update
     private void Awake()
     {
-        animator = GetComponent<Animator>();
         rigid = GetComponent<Rigidbody>();
+        anim = GetComponent<Animator>();
         transform.position = startPosition;
     }
 
@@ -177,7 +176,7 @@ public class Player : NetworkBehaviour
             isWalk = false;
         }
 
-        animator.SetBool("Walking", isWalk);
+        WalkingAnimation(isWalk);
         lastPos = transform.position;
     }
 
@@ -199,7 +198,7 @@ public class Player : NetworkBehaviour
     private void Running()
     {
         isRun = true;
-        animator.SetBool("Running", isRun);
+        RunningAnimation(isRun);
         applySpeed = runSpeed;
     }
 
@@ -207,7 +206,22 @@ public class Player : NetworkBehaviour
     private void RunningCancel()
     {
         isRun = false;
-        animator.SetBool("Running", isRun);
+        RunningAnimation(isRun);
         applySpeed = walkSpeed;
+    }
+
+    public void WalkingAnimation(bool _flag)
+    {
+        anim.SetBool("Walking", _flag);
+    }
+
+    public void RunningAnimation(bool _flag)
+    {
+        anim.SetBool("Running", _flag);
+    }
+
+    public void AttackAnimation(bool _flag)
+    {
+        anim.SetBool("Attack", _flag);
     }
 }
