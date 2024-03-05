@@ -44,13 +44,9 @@ public class WeaponManager : MonoBehaviour
     {
         // DUmp
         canvasComponent = GameObject.FindObjectOfType<Test>();
-
-        Debug.Log(canvasComponent + " OK?");
-
         // DUmp
 
         thePlayer = GetComponentInParent<Player>();
-
         thePlayer.anim.runtimeAnimatorController = currentWeapon.anim.runtimeAnimatorController;
 
         for (int i = 0; i < pickaxes.Length; i++)

@@ -6,7 +6,7 @@ using UnityEngine;
 public class HandController : CloseWeaponController
 {
     // 활성화 여부 
-    public static bool isActivate = false;
+    public static bool isActivate = true;
 
     void Update()
     {
@@ -14,6 +14,11 @@ public class HandController : CloseWeaponController
         {
             TryAttack();
         }
+    }
+
+    private void Start()
+    {
+        WeaponManager.currentWeapon = currentCloseWeapon;
     }
 
     protected override IEnumerator HitCoroutine()

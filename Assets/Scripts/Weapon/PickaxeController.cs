@@ -6,7 +6,7 @@ using UnityEngine;
 public class PickaxeController : CloseWeaponController
 {
     // 활성화 여부 
-    public static bool isActivate = true;
+    public static bool isActivate = false;
 
     void Update()
     {
@@ -14,11 +14,6 @@ public class PickaxeController : CloseWeaponController
         {
             TryAttack();
         }
-    }
-
-    private void Start()
-    {
-        WeaponManager.currentWeapon = currentCloseWeapon;
     }
 
     protected override IEnumerator HitCoroutine()
