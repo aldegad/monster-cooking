@@ -73,6 +73,9 @@ public abstract class CloseWeaponController : MonoBehaviour
         if (WeaponManager.currentWeapon != null)
         {
             WeaponManager.currentWeapon.gameObject.SetActive(false);
+
+            if (WeaponManager.currentWeapon.viewImage)
+                WeaponManager.currentWeapon.viewImage.SetActive(false);
         }
 
         currentCloseWeapon = _closeWeapon;

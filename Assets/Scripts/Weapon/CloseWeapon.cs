@@ -24,6 +24,8 @@ public class CloseWeapon : MonoBehaviour
 
     public Player thePlayer;
 
+    public GameObject viewImage;
+
     private void Start()
     {
         thePlayer = GetComponentInParent<Player>();

@@ -88,6 +88,11 @@ public class WeaponManager : MonoBehaviour
         CancelPreWeaponAction();
         WeaponChange(_type, _name);
 
+        if(currentWeapon.viewImage)
+        {
+            currentWeapon.viewImage.SetActive(true);
+        }
+
         thePlayer.anim.runtimeAnimatorController = currentWeapon.anim.runtimeAnimatorController;
 
         yield return new WaitForSeconds(changeWeaponEndDelayTime);
