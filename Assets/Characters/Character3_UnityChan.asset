@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82e4f7ef2600b9542bf87097d8917c87, type: 3}
   m_Name: Character3_UnityChan
   m_EditorClassIdentifier: 
-  id: 3
+  id: 2
   displayName: UnityChan
   icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  introPrefab: {fileID: 100096, guid: 412b92d4feeb9c548bfa98f62c4d1022, type: 3}
-  gamePlayPrefab: {fileID: -1512329532141223334, guid: 412b92d4feeb9c548bfa98f62c4d1022, type: 3}
+  playerPrefab: {fileID: 100096, guid: 412b92d4feeb9c548bfa98f62c4d1022, type: 3}

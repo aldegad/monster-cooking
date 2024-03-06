@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82e4f7ef2600b9542bf87097d8917c87, type: 3}
   m_Name: Character4_CatoonBoy1
   m_EditorClassIdentifier: 
-  id: 4
+  id: 3
   displayName: CatoonBoy1
   icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  introPrefab: {fileID: 4831751270801450882, guid: 2e1c80361c3a23d4b8c7edc15e837913, type: 3}
-  gamePlayPrefab: {fileID: -8855054107250922566, guid: 2e1c80361c3a23d4b8c7edc15e837913, type: 3}
+  playerPrefab: {fileID: 4831751270801450882, guid: 2e1c80361c3a23d4b8c7edc15e837913, type: 3}

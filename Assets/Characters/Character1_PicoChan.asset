@@ -15,5 +15,4 @@ MonoBehaviour:
   id: 1
   displayName: PicoChan
   icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  introPrefab: {fileID: 1787248303378877175, guid: d25f321c54fbb5d40a2f6873418e3923, type: 3}
-  gamePlayPrefab: {fileID: -1795163551757948968, guid: d25f321c54fbb5d40a2f6873418e3923, type: 3}
+  playerPrefab: {fileID: 1787248303378877175, guid: d25f321c54fbb5d40a2f6873418e3923, type: 3}

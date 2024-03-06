@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82e4f7ef2600b9542bf87097d8917c87, type: 3}
   m_Name: Character2_Amy
   m_EditorClassIdentifier: 
-  id: 2
+  id: 5
   displayName: Amy
   icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  introPrefab: {fileID: 8549486953807529133, guid: 93407c011f029ad4f87f0db485ecb4b4, type: 3}
-  gamePlayPrefab: {fileID: -8239327856853141506, guid: 93407c011f029ad4f87f0db485ecb4b4, type: 3}
+  playerPrefab: {fileID: 8549486953807529133, guid: 93407c011f029ad4f87f0db485ecb4b4, type: 3}
