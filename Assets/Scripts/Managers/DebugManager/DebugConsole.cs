@@ -11,7 +11,6 @@ public class DebugConsole : MonoBehaviour
     private void Awake()
     {
         consoleText.text = "";
-        DontDestroyOnLoad(gameObject);
     }
 
     private void OnEnable()

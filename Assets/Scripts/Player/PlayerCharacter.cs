@@ -5,15 +5,10 @@ using Unity.Netcode;
 
 public class PlayerCharacter : NetworkBehaviour
 {
-    //[SerializeField] private GameObject characterContainer;
-    [SerializeField] private List<GameObject> character;
 
-
+    [SerializeField] private GameObject characterContainer;
     public override void OnNetworkSpawn()
     {
-        DontDestroyOnLoad(gameObject);
-
-        Debug.Log($"Player Character Spawn: owner {OwnerClientId}");
         InitializeCharacter();
     }
 
@@ -28,15 +23,31 @@ public class PlayerCharacter : NetworkBehaviour
         }
     }
 
-    // 서버 전용
     public void UpdateCharacter(int characterId)
     {
+        UpdateCharacterServerRpc(OwnerClientId, characterId);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void UpdateCharacterServerRpc(ulong clientId, int characterId, ServerRpcParams serverPrcParams = default)
+    {
+
+        int playerIndex = GameManager.Instance.GetPlayerIndex(clientId);
+
+        Debug.Log($"player {clientId}'s CharacterId: {characterId}");
+        GameManager.Instance.players[playerIndex] = new PlayerData(clientId, characterId);
+
         UpdateCharacterClientRpc(characterId);
     }
 
     [ClientRpc]
     private void UpdateCharacterClientRpc(int characterId)
     {
-        character[characterId].SetActive(true);
+        foreach (Transform child in characterContainer.transform)
+        { 
+            Destroy(child.gameObject);
+        }
+
+        Instantiate(GameManager.Instance.CharacterDatabase.GetCharacter(characterId).CharacterPrefab, characterContainer.transform);
     }
 }

@@ -12,14 +12,13 @@ public class GameManager : NetworkBehaviour
 
     [Header("Databases")]
     [SerializeField] private CharacterDatabase characterDatabase;
-    [SerializeField] private GameObject PlayerPrefab;
 
     public static GameManager Instance { get; private set; }
 
     // NetworkList<PlayerData> players 초기화는 ServerManager에서 서버 만들때나 참여할 때 알아서 해줄거임.(StartHost, StartClient)
     public NetworkList<PlayerData> players;
 
-    public CharacterDatabase CharacterDatabase() => characterDatabase;
+    public CharacterDatabase CharacterDatabase => characterDatabase;
 
     public override void OnNetworkSpawn()
     {
@@ -53,9 +52,6 @@ public class GameManager : NetworkBehaviour
     public void AddPlayer(ulong clientId)
     {
         players.Add(new PlayerData(clientId));
-        Vector3 spawnPos = new Vector3(Random.Range(-3f, 3f), 0f, Random.Range(-3f, 3f));
-        GameObject playerInstance = Instantiate(PlayerPrefab, spawnPos, Quaternion.identity);
-        playerInstance.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
     }
 
     public void RemovePlayer(ulong clientId)
@@ -91,38 +87,26 @@ public class GameManager : NetworkBehaviour
         return -1;
     }
 
-    public void SpawnPlayer()
+    public void ReSpawnPlayer()
     {
-        SpawnPlayerServerRpc();
+        ReSpawnPlayerServerRpc();
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void SpawnPlayerServerRpc(ServerRpcParams serverPrcParams = default)
+    private void ReSpawnPlayerServerRpc(ServerRpcParams serverPrcParams = default)
     {
         ulong clientId = serverPrcParams.Receive.SenderClientId;
         int playerIndex = GetPlayerIndex(clientId);
 
         Vector3 spawnPos = new Vector3(Random.Range(-3f, 3f), 0f, Random.Range(-3f, 3f));
 
-        GetPlayerObjectByClientId(clientId).GetComponent<Rigidbody>().MovePosition(spawnPos);
+        GetPlayerObject(clientId).GetComponent<Rigidbody>().MovePosition(spawnPos);
     }
 
 
     public void SetCharacter(ulong clientId, int characterId)
     {
-        // 캐릭터를 셋팅하고 서버에 알려줌.
-        SetCharacterServerRpc(clientId, characterId);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void SetCharacterServerRpc(ulong clientId, int characterId, ServerRpcParams serverPrcParams = default)
-    {
-        int playerIndex = GetPlayerIndex(clientId);
-
-        Debug.Log($"player {clientId}'s CharacterId: {characterId}");
-        players[playerIndex] = new PlayerData(clientId, characterId);
-
-        GetPlayerObjectByClientId(clientId).GetComponent<PlayerCharacter>().UpdateCharacter(characterId);
+        GetPlayerObject(clientId).GetComponent<PlayerCharacter>().UpdateCharacter(characterId);
     }
     
     private void HandlePlayersStateChanged(NetworkListEvent<PlayerData> changeEvent)
@@ -144,7 +128,7 @@ public class GameManager : NetworkBehaviour
         } */
     }
 
-    private GameObject GetPlayerObjectByClientId(ulong clientId)
+    private GameObject GetPlayerObject(ulong clientId)
     {
         if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client))
         {

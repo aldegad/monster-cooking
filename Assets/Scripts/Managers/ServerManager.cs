@@ -79,7 +79,7 @@ public class ServerManager : NetworkBehaviour
 
         // ¿¬°á ½ÂÀÎ
         response.Approved = true;
-        response.CreatePlayerObject = false;
+        response.CreatePlayerObject = true;
         response.Pending = false;
 
         // Debug.Log($"Accept client ({request.ClientNetworkId})");
