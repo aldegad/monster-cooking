@@ -22,7 +22,7 @@ public class DebugCharacterChange : NetworkBehaviour
             buttonInstance.onClick.AddListener(() =>
             {
                 Debug.Log(character.CharacterName);
-                GameManager.Instance.SetCharacter(NetworkManager.Singleton.LocalClientId, character.CharacterId);
+                GameManager.Instance.UpdateCharacter(NetworkManager.Singleton.LocalClientId, character.CharacterId);
             });
 
             

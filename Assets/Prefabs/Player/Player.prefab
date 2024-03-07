@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 632534870
+  GlobalObjectIdHash: 2604707060
   InScenePlacedSourceGlobalObjectIdHash: 2604707060
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -189,6 +189,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d42421fe8f421645b82d8bdac540c12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerFollowCamera: {fileID: 8824964421778749832, guid: 9aa3350fccebcc34e8d00bcb31245994, type: 3}
 --- !u!114 &-5422967309344230286
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -214,6 +215,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04788ddad2169a9408684a37c9427f64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spawnPoint: {fileID: 7376357227721916016, guid: cedd1efea1dc1fb459cf87b38b9c21b5, type: 3}
   walkSpeed: 5
   runSpeed: 10
   crouchSpeed: 3

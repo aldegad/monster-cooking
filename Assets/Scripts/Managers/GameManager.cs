@@ -69,7 +69,7 @@ public class GameManager : NetworkBehaviour
 
     public void StartGame()
     {
-        Debug.Log("StartGame");
+        Debug.Log("StartGame!! Eat Delicious Monsters!!");
         // netcode는 scene을 플레이어들 모두 통일해야한대. 그래서 일단 다 게임씬으로 갈거야.
         NetworkManager.Singleton.SceneManager.LoadScene(gameScene, LoadSceneMode.Single);
     }
@@ -87,13 +87,13 @@ public class GameManager : NetworkBehaviour
         return -1;
     }
 
-    public void ReSpawnPlayer()
+    public void SpawnPlayer()
     {
-        ReSpawnPlayerServerRpc();
+        SpawnPlayerServerRpc();
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void ReSpawnPlayerServerRpc(ServerRpcParams serverPrcParams = default)
+    private void SpawnPlayerServerRpc(ServerRpcParams serverPrcParams = default)
     {
         ulong clientId = serverPrcParams.Receive.SenderClientId;
         int playerIndex = GetPlayerIndex(clientId);
@@ -104,7 +104,7 @@ public class GameManager : NetworkBehaviour
     }
 
 
-    public void SetCharacter(ulong clientId, int characterId)
+    public void UpdateCharacter(ulong clientId, int characterId)
     {
         GetPlayerObject(clientId).GetComponent<PlayerCharacter>().UpdateCharacter(characterId);
     }

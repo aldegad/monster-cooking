@@ -16,10 +16,13 @@ public class PlayerCharacter : NetworkBehaviour
     {
         int playerIndex = GameManager.Instance.GetPlayerIndex(OwnerClientId);
 
-        if (playerIndex > -1 && GameManager.Instance.players[playerIndex].characterId > -1)
+        if (playerIndex == -1) { return; }
+
+        if (GameManager.Instance.players[playerIndex].characterId > -1)
         {
-            Debug.Log($"InitializeCharacter: owner {OwnerClientId}, playerIndex: {playerIndex} characterId: {GameManager.Instance.players[playerIndex].characterId}");
-            GameManager.Instance.SetCharacter(OwnerClientId, GameManager.Instance.players[playerIndex].characterId);
+            int chracterId = GameManager.Instance.players[playerIndex].characterId;
+            Debug.Log($"PlayerCharacter InitializeCharacter: owner {OwnerClientId}, playerIndex: {playerIndex} characterId: {chracterId}");
+            UpdateCharacter(chracterId);
         }
     }
 
