@@ -17,6 +17,12 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
         this.position = position;
     }
 
+    public bool IsPlayerReady()
+    {
+        return this.characterId != -1 &&
+            this.position != Vector3.zero;
+    }
+
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref this.clientId);
@@ -29,5 +35,17 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
         return this.clientId == other.clientId &&
             this.characterId == other.characterId &&
             this.position == other.position;
+    }
+
+    public static PlayerData SetCharacterId(int index, int characterId)
+    {
+        PlayerData player = GameManager.Instance.players[index];
+        return new PlayerData(player.clientId, characterId, player.position);
+    }
+
+    public static PlayerData SetPosition(int index, Vector3 position)
+    {
+        PlayerData player = GameManager.Instance.players[index];
+        return new PlayerData(player.clientId, player.characterId, position);
     }
 }

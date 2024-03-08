@@ -9,7 +9,7 @@ public class DebugCharacterChange : NetworkBehaviour
 {
     [SerializeField] private GameObject debugCharacterChangeButtonContainer;
     [SerializeField] private Button debugCharacterChangeButton;
-    private void Awake()
+    private void Start()
     {
         Hide();
 
@@ -21,7 +21,6 @@ public class DebugCharacterChange : NetworkBehaviour
             buttonInstance.GetComponentInChildren<TMP_Text>().text = character.CharacterName;
             buttonInstance.onClick.AddListener(() =>
             {
-                Debug.Log(character.CharacterName);
                 GameManager.Instance.UpdateCharacter(NetworkManager.Singleton.LocalClientId, character.CharacterId);
             });
 

@@ -79,14 +79,13 @@ public class ServerManager : NetworkBehaviour
 
         // ¿¬°á ½ÂÀÎ
         response.Approved = true;
-        response.CreatePlayerObject = true;
+        response.CreatePlayerObject = false;
         response.Pending = false;
 
         // Debug.Log($"Accept client ({request.ClientNetworkId})");
     }
     private void OnClientConnected(ulong clientId)
     {
-        // Debug.Log($"Connected client {clientId}");
         GameManager.Instance.AddPlayer(clientId);
     }
 

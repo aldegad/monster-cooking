@@ -67,5 +67,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainMenuScene: MainMenuScene
-  gameScene: TestGameScene
-  characterDatabase: {fileID: 11400000, guid: 6223b234f6035d647bd7ec93010cecdf, type: 2}
+  gameScene: GameScene
+  characterDatabase: {fileID: 11400000, guid: a66111c56629f22439ed933e6b5299ed, type: 2}
+  playerPrefab: {fileID: 309720205496557961, guid: 4ae549ff7675ee742905bd51dbcb821f, type: 3}

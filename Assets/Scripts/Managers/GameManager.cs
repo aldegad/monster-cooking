@@ -12,25 +12,26 @@ public class GameManager : NetworkBehaviour
 
     [Header("Databases")]
     [SerializeField] private CharacterDatabase characterDatabase;
+    [SerializeField] private GameObject playerPrefab;
 
     public static GameManager Instance { get; private set; }
 
     // NetworkList<PlayerData> players 초기화는 ServerManager에서 서버 만들때나 참여할 때 알아서 해줄거임.(StartHost, StartClient)
     public NetworkList<PlayerData> players;
 
+
     public CharacterDatabase CharacterDatabase => characterDatabase;
 
     public override void OnNetworkSpawn()
     {
-        Debug.Log("GameManagerNetworkSpawned");
-        if (IsClient)
+        if (IsHost)
         {
             players.OnListChanged += HandlePlayersStateChanged;
         }
     }
     public override void OnNetworkDespawn()
     {
-        if (IsClient)
+        if (IsHost)
         {
             players.OnListChanged -= HandlePlayersStateChanged;
         }
@@ -87,58 +88,55 @@ public class GameManager : NetworkBehaviour
         return -1;
     }
 
-    public void SpawnPlayer()
+    public PlayerData GetPlayer(ulong clientId)
     {
-        SpawnPlayerServerRpc();
+        for (int i = 0; i < players.Count; i++)
+        {
+            PlayerData player = players[i];
+
+            if (player.clientId != clientId) { continue; }
+
+            return player;
+        }
+        return new PlayerData();
     }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void SpawnPlayerServerRpc(ServerRpcParams serverPrcParams = default)
-    {
-        ulong clientId = serverPrcParams.Receive.SenderClientId;
-        int playerIndex = GetPlayerIndex(clientId);
-
-        Vector3 spawnPos = new Vector3(Random.Range(-3f, 3f), 0f, Random.Range(-3f, 3f));
-
-        GetPlayerObject(clientId).GetComponent<Rigidbody>().MovePosition(spawnPos);
-    }
-
 
     public void UpdateCharacter(ulong clientId, int characterId)
     {
-        GetPlayerObject(clientId).GetComponent<PlayerCharacter>().UpdateCharacter(characterId);
+        // 여러가지 테스트를 더 해볼거야. 일단 이렇게 두자.
+        NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerCharacter>().UpdateCharacter(characterId);
     }
     
     private void HandlePlayersStateChanged(NetworkListEvent<PlayerData> changeEvent)
     {
-        /* switch (changeEvent.Type)
+        switch (changeEvent.Type)
         {
             case NetworkListEvent<PlayerData>.EventType.Add:
-                // 요소가 추가됨
                 Debug.Log($"Player added: {changeEvent.Value.clientId}");
+
+                GameObject playerInstance = Instantiate(playerPrefab);
+                playerInstance.GetComponent<NetworkObject>().SpawnAsPlayerObject(players[changeEvent.Index].clientId);
                 break;
+
             case NetworkListEvent<PlayerData>.EventType.Remove:
-                // 요소가 삭제됨
+                
                 Debug.Log($"Player removed: {changeEvent.Index}");
                 break;
+
             case NetworkListEvent<PlayerData>.EventType.Value:
-                // 요소 값이 변경됨
-                Debug.Log($"Player data changed at {changeEvent.Index}: Character ID = {changeEvent.Value.characterId}");
+
+                // Debug.Log($"Player data changed at {changeEvent.Index}: Character ID = {changeEvent.Value.characterId}");
                 break;
-        } */
+        }
     }
 
-    private GameObject GetPlayerObject(ulong clientId)
+    /* public GameObject GetPlayerObject(ulong clientId)
     {
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client))
+        if (playerObjects.TryGetValue(clientId, out GameObject playerObject))
         {
-            // 플레이어 오브젝트가 있는 경우, 해당 GameObject를 반환합니다.
-            if (client.PlayerObject != null)
-            {
-                return client.PlayerObject.gameObject;
-            }
+            return playerObject;
         }
 
         return null;
-    }
+    } */
 }
