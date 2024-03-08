@@ -72,41 +72,39 @@ public class PlayerMovement : NetworkBehaviour
         GameManager.Instance.players[playerIndex] = PlayerData.SetPosition(playerIndex, position);
     }
 
-    public void UpdatePosition(Vector3 inputVector)
-    {
-        updatePositionServerRpc(inputVector);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void updatePositionServerRpc(Vector3 inputVector)
-    {
-        Vector3 position = transform.position + inputVector.normalized * maxSpeed * Time.fixedDeltaTime;
-        rigid.MovePosition(position);
-
-        int playerIndex = GameManager.Instance.GetPlayerIndex(OwnerClientId);
-        GameManager.Instance.players[playerIndex] = PlayerData.SetPosition(playerIndex, position);
-    }
     private void UpdateMoveDirection()
     {
         // 키 입력
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
-        moveDirection = new Vector3(horizontal, 0, vertical);
 
-        // Debug.Log(inputVector);
+        Vector3 cameraForward = new Vector3(Camera.main.transform.forward.x, 0f, Camera.main.transform.forward.z);
+        Vector3 cameraRight = new Vector3(Camera.main.transform.right.x, 0f, Camera.main.transform.right.z);
 
-        /*
+        moveDirection = (cameraForward * vertical + cameraRight * horizontal).normalized;
+    }
 
-        Vector3 cameraForward = Camera.main.transform.forward;
-        Vector3 cameraRight = Camera.main.transform.right;
+    public void UpdatePosition(Vector3 moveDirection)
+    {
+        updatePositionServerRpc(moveDirection);
+    }
 
-        // 카메라의 y축 회전만 고려
-        cameraForward.y = 0;
-        cameraRight.y = 0;
-        cameraForward.Normalize();
-        cameraRight.Normalize();
+    [ServerRpc(RequireOwnership = false)]
+    private void updatePositionServerRpc(Vector3 moveDirection)
+    {
+        Vector3 position = transform.position + moveDirection.normalized * maxSpeed * Time.fixedDeltaTime;
 
-        // 입력 벡터를 카메라 방향으로 변환
-        inputVector = (cameraForward * vertical + cameraRight * horizontal).normalized;*/
+        if (moveDirection != Vector3.zero)
+        {
+            // 이동 방향을 바라보도록 회전을 설정
+            Quaternion targetRotation = Quaternion.LookRotation(moveDirection.normalized);
+            // 캐릭터의 현재 회전을 목표 회전으로 부드럽게 전환
+            rigid.rotation = Quaternion.Slerp(rigid.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
+        }
+
+        rigid.MovePosition(position);
+
+        int playerIndex = GameManager.Instance.GetPlayerIndex(OwnerClientId);
+        GameManager.Instance.players[playerIndex] = PlayerData.SetPosition(playerIndex, position);
     }
 }
