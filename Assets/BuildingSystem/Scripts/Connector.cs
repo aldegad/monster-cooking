@@ -17,22 +17,26 @@ public class Connector : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (isConnectedToFloor && isConnectedToWall)
+        if (!isConnectedToFloor && !isConnectedToWall)
         {
             Gizmos.color = Color.green;
         }
 
-        if (isConnectedToFloor)
+        else if (!isConnectedToFloor)
         {
             Gizmos.color = Color.yellow;
         }
 
-        if (isConnectedToWall)
+        else if (!isConnectedToWall)
         {
             Gizmos.color = Color.blue;
         }
+        else
+        {
+            Gizmos.color = Color.red;
+        }
 
-        Gizmos.color = Color.red;
+        
 
         Gizmos.DrawWireSphere(transform.position, transform.lossyScale.x / 2f);
     }
@@ -47,6 +51,12 @@ public class Connector : MonoBehaviour
         foreach (Collider collider in colliders)
         {
             if (collider.GetInstanceID() == GetComponent<Collider>().GetInstanceID())
+            {
+                continue;
+            }
+
+            //... 어차피 뽀갤건데, connector는 왜 비활성화 하는거지...? 뭔 코드야 이건.
+            if (!collider.gameObject.activeInHierarchy)
             {
                 continue;
             }

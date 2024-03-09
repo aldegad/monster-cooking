@@ -14,6 +14,12 @@ public class BuildingManager : MonoBehaviour
     [SerializeField] private SelectedBuildType currentBuildType;
     [SerializeField] private LayerMask connectorLayer;
 
+    [Header("Destroy Settings")]
+    [SerializeField] private bool isDestroying = false;
+    private Transform lastHitDestroyTransform;
+    private List<Material> LastHitMaterials = new List<Material>();
+
+
     [Header("Ghost Settings")]
     [SerializeField] private Material ghostMaterialValid;
     [SerializeField] private Material ghostMaterialInvalid;
@@ -35,11 +41,16 @@ public class BuildingManager : MonoBehaviour
             isBuilding = !isBuilding;
         }
 
-        if (isBuilding)
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            isDestroying = !isDestroying;
+        }
+
+        if (isBuilding && !isDestroying)
         {
             ghostBuild();
 
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButtonDown(0))
             {
                 placeBuild();
             }
@@ -48,6 +59,16 @@ public class BuildingManager : MonoBehaviour
         { 
             Destroy(ghostBuildGameObject);
             ghostBuildGameObject = null;
+        }
+
+        if (isDestroying)
+        {
+            ghostDestroy();
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                destroyBuild();
+            }
         }
     }
 
@@ -97,6 +118,20 @@ public class BuildingManager : MonoBehaviour
         else
         {
             ghostSeperateBuild();
+
+            if (isGhostInvalidPosition)
+            {
+                Collider[] overlapColliders = Physics.OverlapBox(ghostBuildGameObject.transform.position, new Vector3(2f, 2f, 2f), ghostBuildGameObject.transform.rotation);
+                foreach (Collider overapCollider in overlapColliders)
+                {
+                    if (overapCollider.gameObject != ghostBuildGameObject && overapCollider.transform.root.CompareTag("Buildables"))
+                    {
+                        ghostifyModel(ModelParent, ghostMaterialInvalid);
+                        isGhostInvalidPosition = false;
+                        return;
+                    }
+                }
+            }
         }
     }
 
@@ -151,13 +186,6 @@ public class BuildingManager : MonoBehaviour
         if (Physics.Raycast(ray, out hit))
         {
             if(currentBuildType == SelectedBuildType.wall)
-            {
-                ghostifyModel(ModelParent, ghostMaterialInvalid);
-                isGhostInvalidPosition = false;
-                return;
-            }
-
-            if (hit.collider.transform.root.CompareTag("Buildables"))
             {
                 ghostifyModel(ModelParent, ghostMaterialInvalid);
                 isGhostInvalidPosition = false;
@@ -298,6 +326,70 @@ public class BuildingManager : MonoBehaviour
             { 
                 connector.updateConnectors(true);
             }
+        }
+    }
+
+    private void ghostDestroy()
+    {
+        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit))
+        {
+            if (hit.transform.root.CompareTag("Buildables"))
+            {
+                if (!lastHitDestroyTransform)
+                {
+                    lastHitDestroyTransform = hit.transform.root;
+
+                    LastHitMaterials.Clear();
+                    foreach (MeshRenderer lastHitMeshRenderers in lastHitDestroyTransform.GetComponentsInChildren<MeshRenderer>())
+                    {
+                        LastHitMaterials.Add(lastHitMeshRenderers.material);
+                    }
+
+                    ghostifyModel(lastHitDestroyTransform.GetChild(0), ghostMaterialInvalid);
+                }
+                else if (hit.transform.root != lastHitDestroyTransform)
+                {
+                    resetLastDestroyTransform();
+                }
+            }
+            else if (lastHitDestroyTransform)
+            {
+                resetLastDestroyTransform();
+            }
+        }
+    }
+
+    private void resetLastDestroyTransform()
+    {
+        int counter = 0;
+        foreach (MeshRenderer lastHitMeshRenderer in lastHitDestroyTransform.GetComponentsInChildren<MeshRenderer>())
+        {
+            lastHitMeshRenderer.material = LastHitMaterials[counter];
+            counter++;
+        }
+
+        lastHitDestroyTransform = null;
+    }
+
+    private void destroyBuild()
+    {
+        if (lastHitDestroyTransform)
+        {
+
+            //... 어차피 뽀갤건데, connector는 왜 비활성화 하는거지...? 뭔 코드야 이건.
+            foreach (Connector connector in lastHitDestroyTransform.GetComponentsInChildren<Connector>())
+            { 
+                connector.gameObject.SetActive(false);
+                connector.updateConnectors(true);
+            }
+
+            Destroy(lastHitDestroyTransform.gameObject);
+
+            isDestroying = false;
+            lastHitDestroyTransform = null;
         }
     }
 }
