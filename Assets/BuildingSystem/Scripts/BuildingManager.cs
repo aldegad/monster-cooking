@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using UnityEngine;
+using Cinemachine;
 
 public class BuildingManager : MonoBehaviour
 {
@@ -74,11 +75,13 @@ public class BuildingManager : MonoBehaviour
 
     private void moveGhostPrefabToRaycast()
     { 
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        // 화면 중앙에서 레이를 생성합니다.
+        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit))
-        { 
+        {
+            // 레이캐스트가 어떤 오브젝트에 맞았다면, 'ghostBuildGameObject'의 위치를 맞은 지점으로 이동시킵니다.
             ghostBuildGameObject.transform.position = hit.point;
         }
     }
@@ -142,7 +145,7 @@ public class BuildingManager : MonoBehaviour
 
     private void ghostSeperateBuild()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit))

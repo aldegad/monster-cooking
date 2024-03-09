@@ -13,14 +13,12 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] private float rotationSpeed = 10f;
 
     private Rigidbody rigid;
-    private Animator anim;
     private Vector3 moveDirection;
     private float maxSpeed = 0f;
 
     public override void OnNetworkSpawn()
     {
         rigid = GetComponent<Rigidbody>();
-        anim = GetComponent<Animator>();
         maxSpeed = walkSpeed;
 
         if (!IsOwner) { return; }
@@ -74,7 +72,6 @@ public class PlayerMovement : NetworkBehaviour
 
     private void UpdateMoveDirection()
     {
-        // Å° ÀÔ·Â
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
