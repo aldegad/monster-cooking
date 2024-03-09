@@ -189,7 +189,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d42421fe8f421645b82d8bdac540c12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerFollowCamera: {fileID: 6599078562724567904, guid: d5ee7388f10506f48b723a067703c3b4, type: 3}
+  playerFollowCamera: {fileID: 184533190513375893, guid: 505200b3f8399aa4baa522dcaf0c4249, type: 3}
   follow: {fileID: 5935953991342049178}
   lookAt: {fileID: 3003615463653598423}
 --- !u!114 &-5422967309344230286

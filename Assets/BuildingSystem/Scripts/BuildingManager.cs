@@ -193,7 +193,14 @@ public class BuildingManager : MonoBehaviour
     {
         ConnectorPosition position = connector.connectorPosition;
 
+        // 벽이랑 벽을 연결할 때는 바닥을 연결 흠...
+        // 그냥 가장 가까운 커텍터를 연결하면 문제가 되려나?? 이건 테스트를 해보자.
         if (currentBuildType == SelectedBuildType.wall && connector.connectorParentType == SelectedBuildType.wall)
+        {
+            return ConnectorPosition.bottom;
+        }
+
+        if (currentBuildType == SelectedBuildType.wall && connector.connectorParentType == SelectedBuildType.floor)
         {
             return ConnectorPosition.bottom;
         }
