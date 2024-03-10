@@ -89,9 +89,7 @@ public class WeaponManager : MonoBehaviour
         WeaponChange(_type, _name);
 
         if(currentWeapon.viewImage)
-        {
             currentWeapon.viewImage.SetActive(true);
-        }
 
         thePlayer.anim.runtimeAnimatorController = currentWeapon.anim.runtimeAnimatorController;
 
