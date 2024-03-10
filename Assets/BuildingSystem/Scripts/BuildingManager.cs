@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using UnityEngine;
+using TMPro;
 using Cinemachine;
 
 public class BuildingManager : MonoBehaviour
@@ -30,20 +31,19 @@ public class BuildingManager : MonoBehaviour
     [SerializeField] private bool isBuilding = false;
     [SerializeField] private int currentBuildingIndex;
 
+    [Header("UI")]
+    [SerializeField] private GameObject buildingUI;
+    [SerializeField] private TMP_Text destroyText;
+
     private GameObject ghostBuildGameObject;
     private bool isGhostInvalidPosition = false;
     private Transform ModelParent = null;
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.B))
+        if (Input.GetKeyDown(KeyCode.Tab))
         {
-            isBuilding = !isBuilding;
-        }
-
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            isDestroying = !isDestroying;
+            toggleBuildingUI(!buildingUI.activeInHierarchy);
         }
 
         if (isBuilding && !isDestroying)
@@ -320,7 +320,7 @@ public class BuildingManager : MonoBehaviour
             Destroy(ghostBuildGameObject);
             ghostBuildGameObject = null;
 
-            isBuilding = false;
+            // isBuilding = false;
 
             foreach (Connector connector in newBuild.GetComponentsInChildren<Connector>())
             { 
@@ -388,9 +388,73 @@ public class BuildingManager : MonoBehaviour
 
             Destroy(lastHitDestroyTransform.gameObject);
 
-            isDestroying = false;
+            destroyBuildingToggle(true);
             lastHitDestroyTransform = null;
         }
+    }
+
+    public void toggleBuildingUI(bool active)
+    {
+        isBuilding = false;
+
+        buildingUI.SetActive(active);
+
+        CinemachineFreeLook freelook = FindFirstObjectByType<CinemachineFreeLook>();
+        if (active)
+        {
+            freelook.m_XAxis.m_MaxSpeed = 0;
+            freelook.m_YAxis.m_MaxSpeed = 0;
+        }
+        else
+        {
+            freelook.m_XAxis.m_MaxSpeed = 500;
+            freelook.m_YAxis.m_MaxSpeed = 4;
+        }
+
+        Cursor.visible = active;
+        Cursor.lockState = active ? CursorLockMode.None : CursorLockMode.Locked;
+    }
+
+    public void destroyBuildingToggle(bool fromScript = false)
+    {
+        Color green;
+        Color red;
+        ColorUtility.TryParseHtmlString("#FF4747", out red);
+        ColorUtility.TryParseHtmlString("#48FF62", out green);
+
+        if (fromScript)
+        {
+            isDestroying = false;
+            destroyText.text = "Destroy Off";
+            destroyText.color = green;
+        }
+        else
+        {
+            isDestroying = !isDestroying;
+            destroyText.text = isDestroying ? "Destroy On" : "Destroy Off";
+            destroyText.color = isDestroying ? red : green;
+            toggleBuildingUI(false);
+        }
+    }
+
+    public void changeBuildingTypeButton(string selectedBuildType)
+    {
+        if (Enum.TryParse(selectedBuildType, out SelectedBuildType result))
+        {
+            currentBuildType = result;
+        }
+        else
+        {
+            Debug.LogError("Build type doesnt exist");
+        }
+    }
+
+    public void startBuildingButton(int buildIndex)
+    {
+        currentBuildingIndex = buildIndex;
+        toggleBuildingUI(false);
+
+        isBuilding = true;
     }
 }
 
