@@ -95,15 +95,31 @@ public class BuildingManager : MonoBehaviour
     }
 
     private void moveGhostPrefabToRaycast()
-    { 
+    {
         // 화면 중앙에서 레이를 생성합니다.
+        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, ~LayerMask.GetMask("Character")))
+        {
+            // 레이캐스트가 어떤 오브젝트에 맞았다면, 'ghostBuildGameObject'의 위치를 맞은 지점으로 이동시킵니다.
+            ghostBuildGameObject.transform.position = hit.point;
+        }
+    }
+    void OnDrawGizmos()
+    {
         Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit))
         {
-            // 레이캐스트가 어떤 오브젝트에 맞았다면, 'ghostBuildGameObject'의 위치를 맞은 지점으로 이동시킵니다.
-            ghostBuildGameObject.transform.position = hit.point;
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(ray.origin, hit.point);
+        }
+        else
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(ray.origin, ray.origin + ray.direction * 100);
         }
     }
 

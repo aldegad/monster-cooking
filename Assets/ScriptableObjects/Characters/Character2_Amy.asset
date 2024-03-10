@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e385c886ad8e4334f97f0fc4ca42ac5a, type: 3}
   m_Name: Character2_Amy
   m_EditorClassIdentifier: 
-  characterId: 0
+  characterId: 1
   charadterName: Amy
   characterPrefab: {fileID: 4815577948632438378, guid: 642380b4f381bf94b83b8555e245dfbe, type: 3}

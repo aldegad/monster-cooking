@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e385c886ad8e4334f97f0fc4ca42ac5a, type: 3}
   m_Name: Character1_PicoChan
   m_EditorClassIdentifier: 
-  characterId: 1
+  characterId: 0
   charadterName: PicoChan
   characterPrefab: {fileID: 2788836785837329744, guid: 3465aa132ad755e4e89c6232a08811b9, type: 3}
