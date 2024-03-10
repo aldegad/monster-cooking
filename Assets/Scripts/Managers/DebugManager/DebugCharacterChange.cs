@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using Unity.Netcode;
 using TMPro;
 
-public class DebugCharacterChange : NetworkBehaviour
+public class DebugCharacterChange : MonoBehaviour
 {
     [SerializeField] private GameObject debugCharacterChangeButtonContainer;
     [SerializeField] private Button debugCharacterChangeButton;
@@ -21,10 +21,8 @@ public class DebugCharacterChange : NetworkBehaviour
             buttonInstance.GetComponentInChildren<TMP_Text>().text = character.CharacterName;
             buttonInstance.onClick.AddListener(() =>
             {
-                GameManager.Instance.UpdateCharacter(NetworkManager.Singleton.LocalClientId, character.CharacterId);
+                GameManager.Instance.UpdateCharacter(character.CharacterId);
             });
-
-            
         });
     }
 

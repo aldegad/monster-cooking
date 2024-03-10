@@ -12,6 +12,7 @@ public class BuildingManager : MonoBehaviour
     [SerializeField] private List<GameObject> wallObjects = new List<GameObject>();
 
     [Header("Build Settings")]
+    [SerializeField] private LayerMask buildableLayers;
     [SerializeField] private SelectedBuildType currentBuildType;
     [SerializeField] private LayerMask connectorLayer;
 
@@ -31,19 +32,23 @@ public class BuildingManager : MonoBehaviour
     [SerializeField] private bool isBuilding = false;
     [SerializeField] private int currentBuildingIndex;
 
-    [Header("UI")]
-    [SerializeField] private GameObject buildingUI;
-    [SerializeField] private TMP_Text destroyText;
+    [Header("Debug UI")]
+    [SerializeField] private DebugBuildingUI DebugbuildingUI;
 
     private GameObject ghostBuildGameObject;
     private bool isGhostInvalidPosition = false;
     private Transform ModelParent = null;
 
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            toggleBuildingUI(!buildingUI.activeInHierarchy);
+            toggleBuildingUI(!DebugbuildingUI.gameObject.activeSelf);
         }
 
         if (isBuilding && !isDestroying)
@@ -413,7 +418,7 @@ public class BuildingManager : MonoBehaviour
     {
         isBuilding = false;
 
-        buildingUI.SetActive(active);
+        DebugbuildingUI.gameObject.SetActive(active);
 
         CinemachineFreeLook freelook = FindFirstObjectByType<CinemachineFreeLook>();
         if (active)
@@ -441,14 +446,14 @@ public class BuildingManager : MonoBehaviour
         if (fromScript)
         {
             isDestroying = false;
-            destroyText.text = "Destroy Off";
-            destroyText.color = green;
+            DebugbuildingUI.DestroyText.text = "Destroy Off";
+            DebugbuildingUI.DestroyText.color = green;
         }
         else
         {
             isDestroying = !isDestroying;
-            destroyText.text = isDestroying ? "Destroy On" : "Destroy Off";
-            destroyText.color = isDestroying ? red : green;
+            DebugbuildingUI.DestroyText.text = isDestroying ? "Destroy On" : "Destroy Off";
+            DebugbuildingUI.DestroyText.color = isDestroying ? red : green;
             toggleBuildingUI(false);
         }
     }

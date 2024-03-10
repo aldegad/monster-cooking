@@ -47,7 +47,7 @@ GameObject:
   - component: {fileID: 8165783839290370200}
   - component: {fileID: 8488153192448310432}
   - component: {fileID: 6829085917983209949}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -402,7 +402,7 @@ GameObject:
   - component: {fileID: 1930263420660695335}
   - component: {fileID: 26943656124138151}
   - component: {fileID: 1965271511443641904}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -539,7 +539,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2761026933409407731}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: WindowedWall
   m_TagString: Buildables
   m_Icon: {fileID: 0}
@@ -575,7 +575,7 @@ GameObject:
   - component: {fileID: 3794473752771220343}
   - component: {fileID: 6674975952936251482}
   - component: {fileID: 1062116004252347691}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Cube (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -930,7 +930,7 @@ GameObject:
   - component: {fileID: 6646832989840618126}
   - component: {fileID: 6566490825907185872}
   - component: {fileID: 2721317121777013237}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Cube (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}

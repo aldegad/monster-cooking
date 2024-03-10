@@ -43,7 +43,7 @@ public class PlayerCharacter : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void UpdateCharacterServerRpc(ulong clientId, int characterId, ServerRpcParams serverPrcParams = default)
+    private void UpdateCharacterServerRpc(ulong clientId, int characterId)
     {
         int playerIndex = GameManager.Instance.GetPlayerIndex(clientId);
 

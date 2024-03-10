@@ -101,12 +101,18 @@ public class GameManager : NetworkBehaviour
         return new PlayerData();
     }
 
-    public void UpdateCharacter(ulong clientId, int characterId)
+    public void UpdateCharacter(int characterId)
     {
-        // 여러가지 테스트를 더 해볼거야. 일단 이렇게 두자.
-        NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<PlayerCharacter>().UpdateCharacter(characterId);
+        UpdateCharacterServerRpc(characterId);
     }
-    
+
+    [ServerRpc(RequireOwnership = false)]
+    public void UpdateCharacterServerRpc(int characterId, ServerRpcParams serverPrcParams = default)
+    {
+        NetworkManager.Singleton.ConnectedClients.TryGetValue(serverPrcParams.Receive.SenderClientId, out NetworkClient client);
+        client.PlayerObject.GetComponent<PlayerCharacter>().UpdateCharacter(characterId);
+    }
+
     private void HandlePlayersStateChanged(NetworkListEvent<PlayerData> changeEvent)
     {
         switch (changeEvent.Type)
@@ -129,14 +135,4 @@ public class GameManager : NetworkBehaviour
                 break;
         }
     }
-
-    /* public GameObject GetPlayerObject(ulong clientId)
-    {
-        if (playerObjects.TryGetValue(clientId, out GameObject playerObject))
-        {
-            return playerObject;
-        }
-
-        return null;
-    } */
 }
