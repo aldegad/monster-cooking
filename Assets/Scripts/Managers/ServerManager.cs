@@ -82,25 +82,16 @@ public class ServerManager : NetworkBehaviour
         response.CreatePlayerObject = false;
         response.Pending = false;
 
-        Debug.Log($"Accept client ({request.ClientNetworkId})");
+        // Debug.Log($"Accept client ({request.ClientNetworkId})");
     }
     private void OnClientConnected(ulong clientId)
     {
-        Debug.Log($"Connected client {clientId}");
-        GameManager.Instance.players.Add(new PlayerData(clientId));
+        GameManager.Instance.AddPlayer(clientId);
     }
 
     private void OnClientDisconnect(ulong clientId)
     {
-        for (int i = 0; i < GameManager.Instance.players.Count; i++)
-        {
-            if (GameManager.Instance.players[i].clientId == clientId)
-            {
-                GameManager.Instance.players.RemoveAt(i);
-                Debug.Log($"Removed client {clientId}");
-                break;
-            }
-        }
+        GameManager.Instance.RemovePlayer(clientId);
     }
 
     private async Task<string> StartHostWithRelay(int maxConnections = 5)
