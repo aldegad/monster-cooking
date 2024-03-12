@@ -26,6 +26,11 @@ public class PlayerBase : NetworkBehaviour
         Cursor.lockState = CursorLockMode.Locked;
 
         // audio
+        AudioListener[] listeners = FindObjectsOfType<AudioListener>();
+        foreach (var listener in listeners)
+        {
+            listener.enabled = false;
+        }
         gameObject.GetComponent<AudioListener>().enabled = true;
 
         // camera

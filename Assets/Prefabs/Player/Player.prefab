@@ -11,13 +11,13 @@ GameObject:
   - component: {fileID: 6680435585113174395}
   - component: {fileID: 5611898140032657916}
   - component: {fileID: 7021178578687053451}
-  - component: {fileID: 9170055731444210341}
   - component: {fileID: -5691431730598594123}
   - component: {fileID: 4868256761903160186}
   - component: {fileID: -5188915058487904831}
   - component: {fileID: -6248350995360609300}
   - component: {fileID: -5422967309344230286}
   - component: {fileID: 3977907673412264422}
+  - component: {fileID: 5445892995122132481}
   - component: {fileID: 3560328795930363825}
   - component: {fileID: 4015616741720586805}
   m_Layer: 7
@@ -89,32 +89,11 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!95 &9170055731444210341
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 309720205496557961}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &-5691431730598594123
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,7 +106,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2604707060
+  GlobalObjectIdHash: 632534870
   InScenePlacedSourceGlobalObjectIdHash: 2604707060
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -220,10 +199,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnPoint: {fileID: 7376357227721916016, guid: cedd1efea1dc1fb459cf87b38b9c21b5, type: 3}
-  walkSpeed: 5
-  runSpeed: 10
+  charactorContainer: {fileID: 5935953991342049178}
+  runSpeed: 5
+  sprintSpeed: 8
   crouchSpeed: 3
   rotationSpeed: 10
+  isSprint: 0
+  moveDirection: {x: 0, y: 0, z: 0}
+--- !u!114 &5445892995122132481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 309720205496557961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85f36e280c7eaff4ebcdaf49ed634082, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   footstepSource: {fileID: 3560328795930363825}
   groundCheckDistance: 1
   footstepRate: 1
