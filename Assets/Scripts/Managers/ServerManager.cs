@@ -26,9 +26,8 @@ public class ServerManager : NetworkBehaviour
         }
     }
 
-    public async void StartHost()
+    public async Task StartHost()
     {
-        GameManager.Instance.players = new NetworkList<PlayerData>();
         // 연결 승인 처리
         NetworkManager.Singleton.ConnectionApprovalCallback -= ApprovalCallback;
         NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCallback;
@@ -40,16 +39,11 @@ public class ServerManager : NetworkBehaviour
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
 
         string joinCode = await StartHostWithRelay();
-
         Debug.Log($"Host Joined: {joinCode}");
-
-        GameManager.Instance.StartGame();
     }
 
     public async Task<bool> StartClient(string joinCode)
     {
-        GameManager.Instance.players = new NetworkList<PlayerData>();
-
         bool isJoined = false;
 
         if (joinCode != null)
@@ -81,8 +75,6 @@ public class ServerManager : NetworkBehaviour
         response.Approved = true;
         response.CreatePlayerObject = false;
         response.Pending = false;
-
-        // Debug.Log($"Accept client ({request.ClientNetworkId})");
     }
     private void OnClientConnected(ulong clientId)
     {

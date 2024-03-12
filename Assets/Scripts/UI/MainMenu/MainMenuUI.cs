@@ -12,7 +12,7 @@ public class MainMenuUI : MonoBehaviour
     {
         startHostButton.onClick.AddListener(() =>
         {
-            ServerManager.Instance.StartHost();
+            GameManager.Instance.StartHost();
         });
 
         startClientButton.onClick.AddListener(() =>

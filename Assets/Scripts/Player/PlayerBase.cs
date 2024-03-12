@@ -16,10 +16,19 @@ public class PlayerBase : NetworkBehaviour
         Debug.Log($"PlayerBase OnNetworkSpawn OwnerClientId: ${OwnerClientId} / isOwner: {IsOwner}");
 
         if (!IsOwner) { return; }
-        InitializeCamera();
+        Initialize();
     }
-    private void InitializeCamera()
+
+    private void Initialize()
     {
+        // cursor
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+
+        // audio
+        gameObject.GetComponent<AudioListener>().enabled = true;
+
+        // camera
         CinemachineFreeLook playerFollowCameraInstance = Instantiate(playerFollowCamera);
         playerFollowCameraInstance.Follow = follow.transform;
         playerFollowCameraInstance.LookAt = lookAt.transform;

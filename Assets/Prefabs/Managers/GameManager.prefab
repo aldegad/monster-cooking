@@ -66,6 +66,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a19ab1e78516ff44b0aa8357b2ced23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  loadingScreen: {fileID: 0}
   mainMenuScene: MainMenuScene
   gameScene: GameScene
   characterDatabase: {fileID: 11400000, guid: a66111c56629f22439ed933e6b5299ed, type: 2}

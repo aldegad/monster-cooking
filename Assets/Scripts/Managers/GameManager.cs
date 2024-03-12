@@ -1,11 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.SceneManagement;
+using System.Threading.Tasks;
 
 public class GameManager : NetworkBehaviour
 {
+    [SerializeField] public LoadingScreen loadingScreen;
+
     [Header("Scenes")]
     [SerializeField] public string mainMenuScene = "MainMenuScene";
     [SerializeField] public string gameScene = "TestGameScene";
@@ -16,7 +20,6 @@ public class GameManager : NetworkBehaviour
 
     public static GameManager Instance { get; private set; }
 
-    // NetworkList<PlayerData> players 초기화는 ServerManager에서 서버 만들때나 참여할 때 알아서 해줄거임.(StartHost, StartClient)
     public NetworkList<PlayerData> players;
 
 
@@ -50,6 +53,21 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    public async void StartHost()
+    {
+        loadingScreen.gameObject.SetActive(true);
+        players = new NetworkList<PlayerData>();
+        await ServerManager.Instance.StartHost();
+        StartGame();
+    }
+
+    public Task<bool> StartClient(string joinCode)
+    {
+        loadingScreen.gameObject.SetActive(true);
+        players = new NetworkList<PlayerData>();
+        return ServerManager.Instance.StartClient(joinCode);
+    }
+
     public void AddPlayer(ulong clientId)
     {
         players.Add(new PlayerData(clientId));
@@ -70,8 +88,6 @@ public class GameManager : NetworkBehaviour
 
     public void StartGame()
     {
-        Debug.Log("StartGame!! Eat Delicious Monsters!!");
-        // netcode는 scene을 플레이어들 모두 통일해야한대. 그래서 일단 다 게임씬으로 갈거야.
         NetworkManager.Singleton.SceneManager.LoadScene(gameScene, LoadSceneMode.Single);
     }
 
@@ -125,8 +141,8 @@ public class GameManager : NetworkBehaviour
                 break;
 
             case NetworkListEvent<PlayerData>.EventType.Remove:
-                
                 Debug.Log($"Player removed: {changeEvent.Index}");
+
                 break;
 
             case NetworkListEvent<PlayerData>.EventType.Value:

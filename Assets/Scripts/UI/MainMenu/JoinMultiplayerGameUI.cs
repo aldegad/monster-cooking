@@ -22,7 +22,7 @@ public class JoinMultiplayerGameUI : MonoBehaviour
             if (enterJoinCodeInput.text != "")
             {
                 Hide();
-                await ServerManager.Instance.StartClient(enterJoinCodeInput.text);
+                await GameManager.Instance.StartClient(enterJoinCodeInput.text);
             }
         });
     }
