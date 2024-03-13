@@ -8,6 +8,7 @@ public class PlayerCharacter : NetworkBehaviour
 
     [SerializeField] private GameObject characterContainer;
 
+    [HideInInspector] public GameObject character;
     [HideInInspector] public Animator animator;
     public override void OnNetworkSpawn()
     {
@@ -64,7 +65,7 @@ public class PlayerCharacter : NetworkBehaviour
         }
 
         GameObject characterInstance = Instantiate(GameManager.Instance.CharacterDatabase.GetCharacter(characterId).CharacterPrefab, characterContainer.transform);
-        characterInstance.transform.position = Vector3.zero;
+        character = characterInstance;
         animator = characterInstance.GetComponent<Animator>();
     }
 }

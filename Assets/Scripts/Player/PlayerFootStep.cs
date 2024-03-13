@@ -15,15 +15,15 @@ public class PlayerFootStep : MonoBehaviour
     [SerializeField] private float groundCheckDistance = 1.0f;
 
     [Tooltip("Footsteps playing rate")]
-    [SerializeField][Range(1f, 2f)] private float footstepRate = 1f;
+    [SerializeField][Range(1f, 10f)] private float runfootstepRate = 1f;
 
     [Tooltip("Footstep rate when player running")]
-    [SerializeField][Range(1f, 2f)] private float runningFootstepRate = 1.5f;
+    [SerializeField][Range(1f, 10f)] private float sprintFootstepRate = 1.5f;
 
     [Tooltip("Add textures for this layer and add sounds to be played for this texture")]
     public List<GroundLayer> groundLayers = new List<GroundLayer>();
 
-    private PlayerMovement playerMovement;
+    private PlayerAnimation playerAnimation;
     private Terrain _terrain;
     private TerrainData _terrainData;
     private TerrainLayer[] _terrainLayers;
@@ -34,7 +34,7 @@ public class PlayerFootStep : MonoBehaviour
 
     private void Start()
     {
-        playerMovement = GetComponent<PlayerMovement>();
+        playerAnimation = GetComponent<PlayerAnimation>();
     }
 
     private void Update()
@@ -84,9 +84,9 @@ public class PlayerFootStep : MonoBehaviour
 
     private void FootStepChecker()
     {
-        if (playerMovement.moveDirection != Vector3.zero)
+        if (playerAnimation.isRun || playerAnimation.isSprint)
         {
-            float currentFootstepRate = (playerMovement.isSprint ? runningFootstepRate : footstepRate);
+            float currentFootstepRate = (playerAnimation.isSprint ? sprintFootstepRate : runfootstepRate);
 
             if (_nextFootstep >= 100f)
             {
@@ -95,7 +95,7 @@ public class PlayerFootStep : MonoBehaviour
                     _nextFootstep = 0;
                 }
             }
-            _nextFootstep += (currentFootstepRate * playerMovement.runSpeed);
+            _nextFootstep += (currentFootstepRate * 5f);
         }
     }
 

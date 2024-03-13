@@ -15,9 +15,7 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] public float crouchSpeed = 3f;
     [SerializeField] public float rotationSpeed = 10f;
 
-    [SerializeField] public bool isSprint = false;
-
-    private PlayerCharacter playerCharacter;
+    private PlayerAnimation playerAnimation;
     private bool isNetworkSpawned = false;
     private bool isInitialized = false;
     private Rigidbody rigid;
@@ -26,7 +24,7 @@ public class PlayerMovement : NetworkBehaviour
 
     private void Awake()
     {
-        playerCharacter = GetComponent<PlayerCharacter>();
+        playerAnimation = GetComponent<PlayerAnimation>();
         rigid = GetComponent<Rigidbody>();
         rigid.useGravity = false;
         speed = runSpeed;
@@ -43,7 +41,7 @@ public class PlayerMovement : NetworkBehaviour
         initializePosition();
 
         if (!isInitialized) { return; }
-        CheckSprint();
+        UpdateSpeed();
         UpdateMoveDirection();
     }
     private void FixedUpdate()
@@ -51,7 +49,7 @@ public class PlayerMovement : NetworkBehaviour
         if (!IsOwner) { return; }
         if (!isInitialized) { return; }
 
-        UpdatePosition(moveDirection);
+        UpdatePosition(moveDirection, speed);
     }
 
     private void initializePosition()
@@ -105,46 +103,20 @@ public class PlayerMovement : NetworkBehaviour
         moveDirection = (cameraForward * vertical + cameraRight * horizontal).normalized;
     }
 
-    private void CheckSprint()
+    private void UpdateSpeed()
     {
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-            isSprint = true;
-            speed = sprintSpeed;
-        }
-        else
-        {
-            isSprint = false;
-            speed = runSpeed;
-        }
+        if (playerAnimation.isCrouch) { speed = crouchSpeed; return; }
+        if (playerAnimation.isSprint) { speed = sprintSpeed; return; }
+        speed = runSpeed;
     }
 
-    public void UpdatePosition(Vector3 moveDirection)
+    public void UpdatePosition(Vector3 moveDirection, float speed)
     {
-        Animator animator = playerCharacter.animator;
-        if (moveDirection != Vector3.zero)
-        {
-            if (isSprint)
-            {
-                animator.SetBool("Run", false);
-                animator.SetBool("Sprint", true);
-            }
-            else
-            {
-                animator.SetBool("Run", true);
-                animator.SetBool("Sprint", false);
-            }
-        }
-        else
-        {
-            animator.SetBool("Run", false);
-            animator.SetBool("Sprint", false);
-        }
-        updatePositionServerRpc(moveDirection);
+        updatePositionServerRpc(moveDirection, speed);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void updatePositionServerRpc(Vector3 moveDirection)
+    private void updatePositionServerRpc(Vector3 moveDirection, float speed)
     {
         Vector3 position = transform.position + moveDirection.normalized * speed * Time.fixedDeltaTime;
 
@@ -167,6 +139,7 @@ public class PlayerMovement : NetworkBehaviour
     [ClientRpc]
     private void updatePositionClientRpc(Vector3 moveDirection)
     {
+        // 사운드나 이런 곳에서 가져다 써야되거든.
         this.moveDirection = moveDirection;
     }
 }

@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 5445892995122132481}
   - component: {fileID: 3560328795930363825}
   - component: {fileID: 4015616741720586805}
+  - component: {fileID: -2926637539566680304}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -106,7 +107,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 632534870
+  GlobalObjectIdHash: 2604707060
   InScenePlacedSourceGlobalObjectIdHash: 2604707060
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -186,6 +187,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterContainer: {fileID: 5935953991342049178}
+  character: {fileID: 0}
+  animator: {fileID: 0}
 --- !u!114 &3977907673412264422
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -199,12 +202,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnPoint: {fileID: 7376357227721916016, guid: cedd1efea1dc1fb459cf87b38b9c21b5, type: 3}
-  charactorContainer: {fileID: 5935953991342049178}
   runSpeed: 5
   sprintSpeed: 8
   crouchSpeed: 3
   rotationSpeed: 10
-  isSprint: 0
   moveDirection: {x: 0, y: 0, z: 0}
 --- !u!114 &5445892995122132481
 MonoBehaviour:
@@ -395,6 +396,20 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 309720205496557961}
   m_Enabled: 0
+--- !u!114 &-2926637539566680304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 309720205496557961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d1a815e51c9ddb4dbbce79625fc8e7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isRun: 0
+  isSprint: 0
 --- !u!1 &3003615463653598423
 GameObject:
   m_ObjectHideFlags: 0
