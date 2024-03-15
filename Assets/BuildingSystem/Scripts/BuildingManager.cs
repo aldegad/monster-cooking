@@ -41,25 +41,27 @@ public class BuildingManager : MonoBehaviour
     private bool isGhostInvalidPosition = false;
     private Transform ModelParent = null;
 
-    private void Awake()
+    private void Start()
     {
         DontDestroyOnLoad(gameObject);
-        gameObject.SetActive(false);
+        buildingUI.gameObject.SetActive(false);
 
         for (int i = 0; i < floorObjects.Count; i++)
         {
-            GameObject floorObjectInstance = Instantiate(floorObjects[i], buildableObjectGrid.transform);
+            GameObject floorObjectInstance = Instantiate(selectBuildableObjectButton.gameObject, buildableObjectGrid.transform);
             BuildableObjectButton buildableObjectButton = floorObjectInstance.GetComponent<BuildableObjectButton>();
 
+            buildableObjectButton.buildingManager = this;
             buildableObjectButton.selectedBuildType = SelectedBuildType.floor;
             buildableObjectButton.buildingIndex = i;
         }
 
         for (int i = 0; i < wallObjects.Count; i++)
         {
-            GameObject wallObjectInstance = Instantiate(wallObjects[i], buildableObjectGrid.transform);
+            GameObject wallObjectInstance = Instantiate(selectBuildableObjectButton.gameObject, buildableObjectGrid.transform);
             BuildableObjectButton buildableObjectButton = wallObjectInstance.GetComponent<BuildableObjectButton>();
 
+            buildableObjectButton.buildingManager = this;
             buildableObjectButton.selectedBuildType = SelectedBuildType.wall;
             buildableObjectButton.buildingIndex = i;
         }
