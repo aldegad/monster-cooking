@@ -33,7 +33,9 @@ public class BuildingManager : MonoBehaviour
     [SerializeField] private int currentBuildingIndex;
 
     [Header("Debug UI")]
-    [SerializeField] private DebugBuildingUI DebugbuildingUI;
+    [SerializeField] private BuildingUI buildingUI;
+    [SerializeField] private GameObject buildableObjectGrid;
+    [SerializeField] private BuildableObjectButton selectBuildableObjectButton;
 
     private GameObject ghostBuildGameObject;
     private bool isGhostInvalidPosition = false;
@@ -42,13 +44,32 @@ public class BuildingManager : MonoBehaviour
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
+        gameObject.SetActive(false);
+
+        for (int i = 0; i < floorObjects.Count; i++)
+        {
+            GameObject floorObjectInstance = Instantiate(floorObjects[i], buildableObjectGrid.transform);
+            BuildableObjectButton buildableObjectButton = floorObjectInstance.GetComponent<BuildableObjectButton>();
+
+            buildableObjectButton.selectedBuildType = SelectedBuildType.floor;
+            buildableObjectButton.buildingIndex = i;
+        }
+
+        for (int i = 0; i < wallObjects.Count; i++)
+        {
+            GameObject wallObjectInstance = Instantiate(wallObjects[i], buildableObjectGrid.transform);
+            BuildableObjectButton buildableObjectButton = wallObjectInstance.GetComponent<BuildableObjectButton>();
+
+            buildableObjectButton.selectedBuildType = SelectedBuildType.wall;
+            buildableObjectButton.buildingIndex = i;
+        }
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.B))
         {
-            toggleBuildingUI(!DebugbuildingUI.gameObject.activeSelf);
+            toggleBuildingUI(!buildingUI.gameObject.activeSelf);
         }
 
         if (isBuilding && !isDestroying)
@@ -418,7 +439,7 @@ public class BuildingManager : MonoBehaviour
     {
         isBuilding = false;
 
-        DebugbuildingUI.gameObject.SetActive(active);
+        buildingUI.gameObject.SetActive(active);
 
         CinemachineFreeLook freelook = FindFirstObjectByType<CinemachineFreeLook>();
         if (active)
@@ -446,28 +467,21 @@ public class BuildingManager : MonoBehaviour
         if (fromScript)
         {
             isDestroying = false;
-            DebugbuildingUI.DestroyText.text = "Destroy Off";
-            DebugbuildingUI.DestroyText.color = green;
+            buildingUI.DestroyText.text = "Destroy Off";
+            buildingUI.DestroyText.color = green;
         }
         else
         {
             isDestroying = !isDestroying;
-            DebugbuildingUI.DestroyText.text = isDestroying ? "Destroy On" : "Destroy Off";
-            DebugbuildingUI.DestroyText.color = isDestroying ? red : green;
+            buildingUI.DestroyText.text = isDestroying ? "Destroy On" : "Destroy Off";
+            buildingUI.DestroyText.color = isDestroying ? red : green;
             toggleBuildingUI(false);
         }
     }
 
-    public void changeBuildingTypeButton(string selectedBuildType)
+    public void changeBuildingTypeButton(SelectedBuildType selectedBuildType)
     {
-        if (Enum.TryParse(selectedBuildType, out SelectedBuildType result))
-        {
-            currentBuildType = result;
-        }
-        else
-        {
-            Debug.LogError("Build type doesnt exist");
-        }
+        currentBuildType = selectedBuildType;
     }
 
     public void startBuildingButton(int buildIndex)
