@@ -10,21 +10,27 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] private Transform spawnPoint;
 
     [Header("Movement")]
+    [SerializeField] public float gravity = 2f;
     [SerializeField] public float runSpeed = 5f;
     [SerializeField] public float sprintSpeed = 8f;
     [SerializeField] public float crouchSpeed = 3f;
     [SerializeField] public float rotationSpeed = 10f;
+    [SerializeField] private float jumpForce = 100f;
 
-    private PlayerBase playseBase;
+    private PlayerBase playerBase;
+    private Rigidbody rigid;
+
     private bool isNetworkSpawned = false;
     private bool isInitialized = false;
-    private Rigidbody rigid;
+
     private Vector3 moveDirection;
     private float speed = 0f;
 
+    private bool jumpable = true;
+
     private void Awake()
     {
-        playseBase = GetComponent<PlayerBase>();
+        playerBase = GetComponent<PlayerBase>();
         rigid = GetComponent<Rigidbody>();
         rigid.useGravity = false;
         speed = runSpeed;
@@ -49,7 +55,7 @@ public class PlayerMovement : NetworkBehaviour
         if (!IsOwner) { return; }
         if (!isInitialized) { return; }
 
-        UpdatePosition(moveDirection, speed);
+        UpdatePosition();
     }
 
     private void initializePosition()
@@ -105,23 +111,29 @@ public class PlayerMovement : NetworkBehaviour
 
     private void UpdateSpeed()
     {
-        if (playseBase.isCrouch) { speed = crouchSpeed; return; }
-        if (playseBase.isSprint) { speed = sprintSpeed; return; }
+        if (playerBase.isCrouch) { speed = crouchSpeed; return; }
+        if (playerBase.isSprint) { speed = sprintSpeed; return; }
         speed = runSpeed;
     }
 
-    public void UpdatePosition(Vector3 moveDirection, float speed)
+    public void UpdatePosition()
     {
         // 서버에서 업뎃하니까... 플레이 감각이 안좋은데... 흠... 일단 둬보자.
         // 정 안되면, 다 떼버리고 수동으로 하는 수 밖에.
-        updatePositionServerRpc(moveDirection, speed);
+        updatePositionServerRpc(moveDirection, speed, playerBase.isJump, playerBase.remainJumpDelayTime);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void updatePositionServerRpc(Vector3 moveDirection, float speed)
+    private void updatePositionServerRpc(Vector3 moveDirection, float speed, bool isJump, float remainJumpDelayTime)
     {
-        Vector3 position = transform.position + moveDirection.normalized * speed * Time.fixedDeltaTime;
+        // 중력
+        rigid.AddForce(Vector3.up * -gravity, ForceMode.Impulse);
 
+        // 이동
+        Vector3 position = transform.position + moveDirection.normalized * speed * Time.fixedDeltaTime;
+        rigid.MovePosition(position);
+
+        // 회전
         if (moveDirection != Vector3.zero)
         {
             // 이동 방향을 바라보도록 회전을 설정
@@ -129,9 +141,19 @@ public class PlayerMovement : NetworkBehaviour
             // 캐릭터의 현재 회전을 목표 회전으로 부드럽게 전환
             rigid.rotation = Quaternion.Slerp(rigid.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
         }
+        
+        // 점프
+        if (isJump && jumpable)
+        {
+            jumpable = false;
+            rigid.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        }
+        if (remainJumpDelayTime < 0f)
+        {
+            jumpable = true;
+        }
 
-        rigid.MovePosition(position);
-
+        // 저장
         int playerIndex = GameManager.Instance.GetPlayerIndex(OwnerClientId);
         GameManager.Instance.players[playerIndex] = PlayerData.SetPosition(playerIndex, position);
     }

@@ -23,6 +23,21 @@ public class PlayerBase : NetworkBehaviour
     [SerializeField] public bool isSprint = false;
     [SerializeField] public bool isCrouch = false;
 
+    [SerializeField] public bool isJump = false;
+    [SerializeField] private float jumpDelayTime = 0.1f;
+    [SerializeField] public float remainJumpDelayTime = 0f;
+
+    [SerializeField] public bool isFall = false;
+    [SerializeField] public bool isGround = false;
+    [SerializeField] public float groundCheckDistance = 0.3f;
+    [SerializeField] private float fallDelayTime = 0.2f;
+    [SerializeField] private float remainFallDelayTime = 0f;
+
+    private Vector3 previousPosition;
+    private Vector3 velocity;
+    
+    
+
     public override void OnNetworkSpawn()
     {
         DontDestroyOnLoad(gameObject);
@@ -33,6 +48,8 @@ public class PlayerBase : NetworkBehaviour
     }
     private void Update()
     {
+        UpdateVelocity();
+
         if (!IsOwner) { return; }
         UpdateState();
     }
@@ -84,9 +101,15 @@ public class PlayerBase : NetworkBehaviour
             isCrouch = !isCrouch;
         }
 
+        UpdateJumpState();
+        UpdateFallState();
+        UpdateGroundState();
+
+        // update
+        UpdateStateServerRpc(isRun, isSprint, isCrouch, isJump, isFall, isGround, remainJumpDelayTime, remainFallDelayTime);
         ChangeCameraState();
-        UpdateStateServerRpc(isRun, isSprint, isCrouch);
     }
+
     private void ChangeCameraState()
     {
         if (isCrouch)
@@ -101,19 +124,89 @@ public class PlayerBase : NetworkBehaviour
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    private void UpdateStateServerRpc(bool isRun, bool isSprint, bool isCrouch)
+    private void UpdateVelocity()
     {
-        UpdateStateClientRpc(isRun, isSprint, isCrouch);
+        if (previousPosition == null) previousPosition = transform.position;
+
+        velocity = (transform.position - previousPosition) / Time.deltaTime;
+        previousPosition = transform.position;
+    }
+
+    private void UpdateJumpState()
+    {
+        if (!isJump && isGround)
+        {
+            remainJumpDelayTime -= Time.deltaTime;
+        }
+
+        if (Input.GetButtonDown("Jump") && isGround && remainJumpDelayTime <= 0f)
+        {
+            isJump = true;
+        }
+
+        if (isJump)
+        {
+            remainJumpDelayTime = jumpDelayTime;
+            remainFallDelayTime = 0f;
+        }
+
+        if (isJump && isFall)
+        {
+            isJump = false;
+        }
+    }
+
+    private void UpdateFallState()
+    {
+        if (isGround) {
+            remainFallDelayTime = fallDelayTime;
+        }
+        else {
+            remainFallDelayTime -= Time.deltaTime;
+        }
+
+        if (velocity.y < 0 && remainFallDelayTime < 0f)
+        {
+            isFall = true;
+        }
+        else
+        {
+            isFall = false;
+        }
+    }
+
+    private void UpdateGroundState()
+    {
+        Ray checkerRay = new Ray(transform.position + (Vector3.up * 0.1f), Vector3.down);
+
+        if (Physics.Raycast(checkerRay, groundCheckDistance))
+        {
+            isGround = true;
+        }
+        else
+        {
+            isGround = false;
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void UpdateStateServerRpc(bool isRun, bool isSprint, bool isCrouch, bool isJump, bool isFall, bool isGround, float remainJumpDelayTime, float remainFallDelayTime)
+    {
+        UpdateStateClientRpc(isRun, isSprint, isCrouch, isJump, isFall, isGround, remainJumpDelayTime, remainFallDelayTime);
     }
 
     [ClientRpc]
-    private void UpdateStateClientRpc(bool isRun, bool isSprint, bool isCrouch)
+    private void UpdateStateClientRpc(bool isRun, bool isSprint, bool isCrouch, bool isJump, bool isFall, bool isGround, float remainJumpDelayTime, float remainFallDelayTime)
     {
         if (IsOwner) { return; }
         // 다른 사람들의 상태 업데이트
         this.isRun = isRun;
         this.isSprint = isSprint;
         this.isCrouch = isCrouch;
+        this.isJump = isJump;
+        this.isFall = isFall;
+        this.isGround = isGround;
+        this.remainJumpDelayTime = remainJumpDelayTime;
+        this.remainFallDelayTime = remainFallDelayTime;
     }
 }

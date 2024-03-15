@@ -11,11 +11,11 @@ public class PlayerFootStep : MonoBehaviour
     [Tooltip("Footstep source")]
     [SerializeField] private AudioSource footstepSource;
 
-    [Tooltip("Distance for ground texture checker")]
-    [SerializeField] private float groundCheckDistance = 1.0f;
+    [Tooltip("Footsteps playing rate")]
+    [SerializeField][Range(1f, 10f)] private float crouchFootstepRate = 0.7f;
 
     [Tooltip("Footsteps playing rate")]
-    [SerializeField][Range(1f, 10f)] private float runfootstepRate = 1f;
+    [SerializeField][Range(1f, 10f)] private float runFootstepRate = 1f;
 
     [Tooltip("Footstep rate when player running")]
     [SerializeField][Range(1f, 10f)] private float sprintFootstepRate = 1.5f;
@@ -69,7 +69,7 @@ public class PlayerFootStep : MonoBehaviour
 
         Ray checkerRay = new Ray(transform.position + (Vector3.up * 0.1f), Vector3.down);
 
-        if (Physics.Raycast(checkerRay, out _groundHit, groundCheckDistance))
+        if (Physics.Raycast(checkerRay, out _groundHit, 0.3f))
         {
             if (_groundHit.collider.GetComponent<Terrain>())
             {
@@ -84,9 +84,12 @@ public class PlayerFootStep : MonoBehaviour
 
     private void FootStepChecker()
     {
-        if (playerBase.isRun || playerBase.isSprint)
+        bool isMoving = playerBase.isRun || playerBase.isSprint;
+        if (isMoving && playerBase.isGround)
         {
-            float currentFootstepRate = (playerBase.isSprint ? sprintFootstepRate : runfootstepRate);
+            float currentFootstepRate = runFootstepRate;
+            if (playerBase.isSprint) { currentFootstepRate = sprintFootstepRate; }
+            if (playerBase.isCrouch) { currentFootstepRate = crouchFootstepRate; }
 
             if (_nextFootstep >= 100f)
             {

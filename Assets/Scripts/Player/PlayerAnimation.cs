@@ -28,6 +28,9 @@ public class PlayerAnimation : NetworkBehaviour
         playerCharacter.animator.SetBool("IsRun", playerBase.isRun);
         playerCharacter.animator.SetBool("IsSprint", playerBase.isSprint);
         playerCharacter.animator.SetBool("IsCrouch", playerBase.isCrouch);
+        playerCharacter.animator.SetBool("IsJump", playerBase.isJump);
+        playerCharacter.animator.SetBool("IsFall", playerBase.isFall);
+        playerCharacter.animator.SetBool("IsGround", playerBase.isGround);
     }
 
     private void UpdateCrouchMeshBounds()
