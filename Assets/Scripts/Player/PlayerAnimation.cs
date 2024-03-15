@@ -5,77 +5,39 @@ using Unity.Netcode;
 
 public class PlayerAnimation : NetworkBehaviour
 {
-    [SerializeField] public bool isRun = false;
-    [SerializeField] public bool isSprint = false;
-    [SerializeField] public bool isCrouch = false;
-
+    private PlayerBase playerBase;
     private PlayerCharacter playerCharacter;
+
+    private bool lastCrouchState = false;
+
     private void Awake()
     {
+        playerBase = GetComponent<PlayerBase>();
         playerCharacter = GetComponent<PlayerCharacter>();
     }
 
     private void Update()
     {
-        if (!IsOwner) { return; }
-
-        UpdateAnimationState();
         UpdateAnimation();
-    }
-
-    private void UpdateAnimationState()
-    {
-        if (Input.GetButton("Horizontal") || Input.GetButton("Vertical"))
-        {
-            if (Input.GetKey(KeyCode.LeftShift))
-            {
-                isRun = false;
-                isSprint = true;
-            }
-            else
-            {
-                isRun = true;
-                isSprint = false;
-            }
-        }
-        else
-        {
-            isRun = false;
-            isSprint = false;
-        }
-
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            isCrouch = !isCrouch;
-        }
-
-        // 내꺼는 빨리 업뎃되어야 하니깐.
-        playerCharacter.animator.SetBool("IsRun", isRun);
-        playerCharacter.animator.SetBool("IsSprint", isSprint);
-        playerCharacter.animator.SetBool("IsSprint", isCrouch);
+        UpdateCrouchMeshBounds();
     }
 
     private void UpdateAnimation()
     {
-        UpdateAnimationServerRpc(isRun, isSprint, isCrouch);
+        if (!playerCharacter.animator) { return; }
+        playerCharacter.animator.SetBool("IsRun", playerBase.isRun);
+        playerCharacter.animator.SetBool("IsSprint", playerBase.isSprint);
+        playerCharacter.animator.SetBool("IsCrouch", playerBase.isCrouch);
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    private void UpdateAnimationServerRpc(bool isRun, bool isSprint, bool isCrouch)
+    private void UpdateCrouchMeshBounds()
     {
-        UpdateAnimationClientRpc(isRun, isSprint, isCrouch);
-    }
+        if (lastCrouchState == playerBase.isCrouch) { return; }
+        lastCrouchState = playerBase.isCrouch;
 
-    [ClientRpc]
-    private void UpdateAnimationClientRpc(bool isRun, bool isSprint, bool isCrouch)
-    { 
-        this.isRun = isRun;
-        this.isSprint = isSprint;
-        this.isCrouch = isCrouch;
-
-        // 다른 사람들을 위한 업데이트
-        playerCharacter.animator.SetBool("IsRun", isRun);
-        playerCharacter.animator.SetBool("IsSprint", isSprint);
-        playerCharacter.animator.SetBool("IsCrouch", isCrouch);
+        foreach (PlayerBoots boots in playerCharacter.boots)
+        {
+            boots.CrouchBounds(playerBase.isCrouch);
+        }
     }
 }

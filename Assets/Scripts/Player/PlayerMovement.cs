@@ -15,16 +15,16 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] public float crouchSpeed = 3f;
     [SerializeField] public float rotationSpeed = 10f;
 
-    private PlayerAnimation playerAnimation;
+    private PlayerBase playseBase;
     private bool isNetworkSpawned = false;
     private bool isInitialized = false;
     private Rigidbody rigid;
-    [HideInInspector]  public Vector3 moveDirection;
+    private Vector3 moveDirection;
     private float speed = 0f;
 
     private void Awake()
     {
-        playerAnimation = GetComponent<PlayerAnimation>();
+        playseBase = GetComponent<PlayerBase>();
         rigid = GetComponent<Rigidbody>();
         rigid.useGravity = false;
         speed = runSpeed;
@@ -105,13 +105,15 @@ public class PlayerMovement : NetworkBehaviour
 
     private void UpdateSpeed()
     {
-        if (playerAnimation.isCrouch) { speed = crouchSpeed; return; }
-        if (playerAnimation.isSprint) { speed = sprintSpeed; return; }
+        if (playseBase.isCrouch) { speed = crouchSpeed; return; }
+        if (playseBase.isSprint) { speed = sprintSpeed; return; }
         speed = runSpeed;
     }
 
     public void UpdatePosition(Vector3 moveDirection, float speed)
     {
+        // 서버에서 업뎃하니까... 플레이 감각이 안좋은데... 흠... 일단 둬보자.
+        // 정 안되면, 다 떼버리고 수동으로 하는 수 밖에.
         updatePositionServerRpc(moveDirection, speed);
     }
 
@@ -132,14 +134,5 @@ public class PlayerMovement : NetworkBehaviour
 
         int playerIndex = GameManager.Instance.GetPlayerIndex(OwnerClientId);
         GameManager.Instance.players[playerIndex] = PlayerData.SetPosition(playerIndex, position);
-
-        updatePositionClientRpc(moveDirection);
-    }
-
-    [ClientRpc]
-    private void updatePositionClientRpc(Vector3 moveDirection)
-    {
-        // 사운드나 이런 곳에서 가져다 써야되거든.
-        this.moveDirection = moveDirection;
     }
 }

@@ -10,6 +10,7 @@ public class PlayerCharacter : NetworkBehaviour
 
     [HideInInspector] public GameObject character;
     [HideInInspector] public Animator animator;
+    [HideInInspector] public PlayerBoots[] boots;
     public override void OnNetworkSpawn()
     {
         InitializeCharacter();
@@ -30,12 +31,10 @@ public class PlayerCharacter : NetworkBehaviour
         int chracterId = GameManager.Instance.players[playerIndex].characterId;
         if (GameManager.Instance.players[playerIndex].characterId > -1)
         {
-            Debug.Log($"PlayerCharacter InitializeCharacter: owner {OwnerClientId}, playerIndex: {playerIndex} characterId: {chracterId}");
             UpdateCharacter(chracterId);
         }
         else
         {
-            Debug.Log($"PlayerCharacter InitializeCharacter: owner {OwnerClientId}, playerIndex: {playerIndex} characterId(new): {chracterId}");
             UpdateCharacter(0);
         }
     }
@@ -67,5 +66,6 @@ public class PlayerCharacter : NetworkBehaviour
         GameObject characterInstance = Instantiate(GameManager.Instance.CharacterDatabase.GetCharacter(characterId).CharacterPrefab, characterContainer.transform);
         character = characterInstance;
         animator = characterInstance.GetComponent<Animator>();
+        boots = characterInstance.GetComponentsInChildren<PlayerBoots>(true);
     }
 }

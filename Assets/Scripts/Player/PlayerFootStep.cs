@@ -23,7 +23,7 @@ public class PlayerFootStep : MonoBehaviour
     [Tooltip("Add textures for this layer and add sounds to be played for this texture")]
     public List<GroundLayer> groundLayers = new List<GroundLayer>();
 
-    private PlayerAnimation playerAnimation;
+    private PlayerBase playerBase;
     private Terrain _terrain;
     private TerrainData _terrainData;
     private TerrainLayer[] _terrainLayers;
@@ -34,7 +34,7 @@ public class PlayerFootStep : MonoBehaviour
 
     private void Start()
     {
-        playerAnimation = GetComponent<PlayerAnimation>();
+        playerBase = GetComponent<PlayerBase>();
     }
 
     private void Update()
@@ -84,9 +84,9 @@ public class PlayerFootStep : MonoBehaviour
 
     private void FootStepChecker()
     {
-        if (playerAnimation.isRun || playerAnimation.isSprint)
+        if (playerBase.isRun || playerBase.isSprint)
         {
-            float currentFootstepRate = (playerAnimation.isSprint ? sprintFootstepRate : runfootstepRate);
+            float currentFootstepRate = (playerBase.isSprint ? sprintFootstepRate : runfootstepRate);
 
             if (_nextFootstep >= 100f)
             {
