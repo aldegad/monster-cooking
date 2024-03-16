@@ -7,7 +7,7 @@ using Unity.Netcode;
 
 public class PlayerMovement : NetworkBehaviour
 {
-    [SerializeField] private Transform spawnPoint;
+    [SerializeField] private Vector3 spawnPoint;
 
     [Header("Movement")]
     [SerializeField] public float gravity = 2f;
@@ -82,7 +82,7 @@ public class PlayerMovement : NetworkBehaviour
         }
         else
         {
-            position = spawnPoint.position;
+            position = spawnPoint;
         }
 
         rigid.MovePosition(position);

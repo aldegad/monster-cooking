@@ -218,13 +218,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04788ddad2169a9408684a37c9427f64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnPoint: {fileID: 7376357227721916016, guid: cedd1efea1dc1fb459cf87b38b9c21b5, type: 3}
+  spawnPoint: {x: 138.899, y: 11.714, z: 105.1605}
   gravity: 2
-  runSpeed: 5
-  sprintSpeed: 8
-  crouchSpeed: 3
+  runSpeed: 4
+  sprintSpeed: 6
+  crouchSpeed: 2.5
   rotationSpeed: 10
-  jumpForce: 100
+  jumpForce: 95
 --- !u!114 &5445892995122132481
 MonoBehaviour:
   m_ObjectHideFlags: 0
