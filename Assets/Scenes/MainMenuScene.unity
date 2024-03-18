@@ -3213,6 +3213,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: DebugManager
       objectReference: {fileID: 0}
+    - target: {fileID: 5326236058124623585, guid: 80bd9cb09beab964aa141c654c398e48, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5326236058124623585, guid: 80bd9cb09beab964aa141c654c398e48, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5326236058124623585, guid: 80bd9cb09beab964aa141c654c398e48, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6316976988117145648, guid: 80bd9cb09beab964aa141c654c398e48, type: 3}
       propertyPath: m_Pivot.x
       value: 0

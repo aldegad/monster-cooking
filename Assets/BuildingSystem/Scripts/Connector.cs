@@ -6,7 +6,7 @@ using UnityEngine;
 public class Connector : MonoBehaviour
 {
     public ConnectorPosition connectorPosition;
-    public SelectedBuildType connectorParentType;
+    public BuildType connectorParentType;
 
     [HideInInspector] public bool isConnectedToFloor = false;
     [HideInInspector] public bool isConnectedToWall = false;
@@ -36,49 +36,41 @@ public class Connector : MonoBehaviour
             Gizmos.color = Color.red;
         }
 
-        
-
         Gizmos.DrawWireSphere(transform.position, transform.lossyScale.x / 2f);
     }
 
     public void updateConnectors(bool rootCall = false)
     {
-        Collider[] colliders = Physics.OverlapSphere(transform.position, transform.lossyScale.x / 2f);
+        Collider myCollider = gameObject.GetComponent<Collider>();
+
+        LayerMask maskFromLayer = 1 << gameObject.layer; // 레이어 인덱스를 이용해 LayerMask 생성
+        Collider[] colliders = Physics.OverlapSphere(transform.position, transform.lossyScale.x, maskFromLayer);
 
         isConnectedToFloor = !canConnectToFloor;
         isConnectedToWall = !canConnectToWall;
 
         foreach (Collider collider in colliders)
         {
-            if (collider.GetInstanceID() == GetComponent<Collider>().GetInstanceID())
+            if (collider == myCollider) { continue; }
+            if (!collider.gameObject.activeInHierarchy) { continue; }
+
+            Connector foundConnector = collider.GetComponent<Connector>();
+
+            if (foundConnector == null) { continue; }
+
+            if (foundConnector.connectorParentType == BuildType.floor)
             {
-                continue;
+                isConnectedToFloor = true;
             }
 
-            //... 어차피 뽀갤건데, connector는 왜 비활성화 하는거지...? 뭔 코드야 이건.
-            if (!collider.gameObject.activeInHierarchy)
+            if (foundConnector.connectorParentType == BuildType.wall)
             {
-                continue;
+                isConnectedToWall = true;
             }
 
-            if (collider.gameObject.layer == gameObject.layer)
-            { 
-                Connector foundConnector = collider.GetComponent<Connector>();
-
-                if (foundConnector.connectorParentType == SelectedBuildType.floor)
-                {
-                    isConnectedToFloor = true;
-                }
-
-                if (foundConnector.connectorParentType == SelectedBuildType.wall)
-                {
-                    isConnectedToWall = true;
-                }
-
-                if (rootCall)
-                { 
-                    foundConnector.updateConnectors();
-                }
+            if (rootCall)
+            {
+                foundConnector.updateConnectors();
             }
         }
 

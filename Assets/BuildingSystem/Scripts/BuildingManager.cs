@@ -8,12 +8,14 @@ using Cinemachine;
 public class BuildingManager : MonoBehaviour
 {
     [Header("Build Objects")]
+    [SerializeField] private GameObject floorModule;
+    [SerializeField] private GameObject wallModule;
     [SerializeField] private List<GameObject> floorObjects = new List<GameObject>();
     [SerializeField] private List<GameObject> wallObjects = new List<GameObject>();
 
     [Header("Build Settings")]
     [SerializeField] private LayerMask buildableLayers;
-    [SerializeField] private SelectedBuildType currentBuildType;
+    [SerializeField] private BuildType currentBuildType;
     [SerializeField] private LayerMask connectorLayer;
 
     [Header("Destroy Settings")]
@@ -52,7 +54,7 @@ public class BuildingManager : MonoBehaviour
             BuildableObjectButton buildableObjectButton = floorObjectInstance.GetComponent<BuildableObjectButton>();
 
             buildableObjectButton.buildingManager = this;
-            buildableObjectButton.selectedBuildType = SelectedBuildType.floor;
+            buildableObjectButton.selectedBuildType = BuildType.floor;
             buildableObjectButton.buildingIndex = i;
         }
 
@@ -62,7 +64,7 @@ public class BuildingManager : MonoBehaviour
             BuildableObjectButton buildableObjectButton = wallObjectInstance.GetComponent<BuildableObjectButton>();
 
             buildableObjectButton.buildingManager = this;
-            buildableObjectButton.selectedBuildType = SelectedBuildType.wall;
+            buildableObjectButton.selectedBuildType = BuildType.wall;
             buildableObjectButton.buildingIndex = i;
         }
     }
@@ -102,8 +104,11 @@ public class BuildingManager : MonoBehaviour
 
     private void ghostBuild()
     {
-        GameObject currentBuild = getCurrentBuild();
-        createGhostPrefab(currentBuild);
+        if (ghostBuildGameObject == null)
+        {
+            GameObject currentBuild = getCurrentBuild(transform);
+            createGhostPrefab(currentBuild);
+        }
 
         moveGhostPrefabToRaycast();
         checkBuildValidity();
@@ -111,15 +116,12 @@ public class BuildingManager : MonoBehaviour
 
     private void createGhostPrefab(GameObject currentBuild)
     {
-        if (ghostBuildGameObject == null)
-        { 
-            ghostBuildGameObject = Instantiate(currentBuild);
+        ghostBuildGameObject = currentBuild;
 
-            ModelParent = ghostBuildGameObject.transform.GetChild(0);
+        ModelParent = ghostBuildGameObject.transform.GetChild(0);
 
-            ghostifyModel(ModelParent, ghostMaterialValid);
-            ghostifyModel(ghostBuildGameObject.transform);
-        }
+        ghostifyModel(ModelParent, ghostMaterialValid);
+        ghostifyModel(ghostBuildGameObject.transform);
     }
 
     private void moveGhostPrefabToRaycast()
@@ -128,7 +130,7 @@ public class BuildingManager : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, ~LayerMask.GetMask("Character")))
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, buildableLayers))
         {
             // 레이캐스트가 어떤 오브젝트에 맞았다면, 'ghostBuildGameObject'의 위치를 맞은 지점으로 이동시킵니다.
             ghostBuildGameObject.transform.position = hit.point;
@@ -141,12 +143,12 @@ public class BuildingManager : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit))
         {
-            Gizmos.color = Color.red;
+            Gizmos.color = Color.green;
             Gizmos.DrawLine(ray.origin, hit.point);
         }
         else
         {
-            Gizmos.color = Color.blue;
+            Gizmos.color = Color.red;
             Gizmos.DrawLine(ray.origin, ray.origin + ray.direction * 100);
         }
     }
@@ -195,8 +197,8 @@ public class BuildingManager : MonoBehaviour
         }
 
         if (bestConnector == null ||
-            currentBuildType == SelectedBuildType.floor && bestConnector.isConnectedToFloor ||
-            currentBuildType == SelectedBuildType.wall && bestConnector.isConnectedToWall)
+            currentBuildType == BuildType.floor && bestConnector.isConnectedToFloor ||
+            currentBuildType == BuildType.wall && bestConnector.isConnectedToWall)
         {
             ghostifyModel(ModelParent, ghostMaterialInvalid);
             isGhostInvalidPosition = false;
@@ -211,7 +213,7 @@ public class BuildingManager : MonoBehaviour
         Transform ghostConnector = findSnapConnector(connector.transform, ghostBuildGameObject.transform.GetChild(1));
         ghostBuildGameObject.transform.position = connector.transform.position - (ghostConnector.position - ghostBuildGameObject.transform.position);
 
-        if (currentBuildType == SelectedBuildType.wall)
+        if (currentBuildType == BuildType.wall)
         {
             Quaternion newRotation = ghostBuildGameObject.transform.rotation;
             newRotation.eulerAngles = new Vector3(newRotation.eulerAngles.x, connector.transform.rotation.eulerAngles.y, newRotation.eulerAngles.z);
@@ -229,7 +231,7 @@ public class BuildingManager : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit))
         {
-            if(currentBuildType == SelectedBuildType.wall)
+            if(currentBuildType == BuildType.wall)
             {
                 ghostifyModel(ModelParent, ghostMaterialInvalid);
                 isGhostInvalidPosition = false;
@@ -264,23 +266,22 @@ public class BuildingManager : MonoBehaviour
         return null;
     }
 
+    // 요기는 좀 섬세하게 조정해야하는 부분일듯
     private ConnectorPosition getOppositePosition(Connector connector)
     {
         ConnectorPosition position = connector.connectorPosition;
 
-        // 벽이랑 벽을 연결할 때는 바닥을 연결 흠...
-        // 그냥 가장 가까운 커텍터를 연결하면 문제가 되려나?? 이건 테스트를 해보자.
-        if (currentBuildType == SelectedBuildType.wall && connector.connectorParentType == SelectedBuildType.wall)
+        /*if (currentBuildType == BuildType.wall && connector.connectorParentType == BuildType.wall)
+        {
+            return ConnectorPosition.bottom;
+        }*/
+
+        if (currentBuildType == BuildType.wall && connector.connectorParentType == BuildType.floor)
         {
             return ConnectorPosition.bottom;
         }
 
-        if (currentBuildType == SelectedBuildType.wall && connector.connectorParentType == SelectedBuildType.floor)
-        {
-            return ConnectorPosition.bottom;
-        }
-
-        if (currentBuildType == SelectedBuildType.floor && connector.connectorParentType == SelectedBuildType.wall && connector.connectorPosition == ConnectorPosition.top)
+        if (currentBuildType == BuildType.floor && connector.connectorParentType == BuildType.wall && connector.connectorPosition == ConnectorPosition.top)
         {
             if (connector.transform.root.rotation.y == 0)
             {
@@ -342,14 +343,25 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
-    private GameObject getCurrentBuild()
+    private GameObject getCurrentBuild(Transform transform = null)
     {
         switch (currentBuildType)
         {
-            case SelectedBuildType.floor:
-                return floorObjects[currentBuildingIndex];
-            case SelectedBuildType.wall:
-                return wallObjects[currentBuildingIndex];
+            case BuildType.floor:
+                GameObject floorInstance = Instantiate(floorModule, transform.position, transform.rotation);
+                Transform floorModelParent = floorInstance.transform.GetChild(0);
+                floorInstance.name = floorObjects[currentBuildingIndex].name;
+                Instantiate(floorObjects[currentBuildingIndex], floorModelParent.transform);
+
+                return floorInstance;
+
+            case BuildType.wall:
+                GameObject wallInstance = Instantiate(wallModule, transform.position, transform.rotation);
+                Transform wallModelParent = wallInstance.transform.GetChild(0);
+                wallInstance.name = wallObjects[currentBuildingIndex].name;
+                Instantiate(wallObjects[currentBuildingIndex], wallModelParent.transform);
+
+                return wallInstance;
         }
 
         return null;
@@ -359,12 +371,10 @@ public class BuildingManager : MonoBehaviour
     { 
         if(ghostBuildGameObject != null && isGhostInvalidPosition)
         {
-            GameObject newBuild = Instantiate(getCurrentBuild(), ghostBuildGameObject.transform.position, ghostBuildGameObject.transform.rotation);
+            GameObject newBuild = getCurrentBuild(ghostBuildGameObject.transform);
 
             Destroy(ghostBuildGameObject);
             ghostBuildGameObject = null;
-
-            // isBuilding = false;
 
             foreach (Connector connector in newBuild.GetComponentsInChildren<Connector>())
             { 
@@ -422,8 +432,6 @@ public class BuildingManager : MonoBehaviour
     {
         if (lastHitDestroyTransform)
         {
-
-            //... 어차피 뽀갤건데, connector는 왜 비활성화 하는거지...? 뭔 코드야 이건.
             foreach (Connector connector in lastHitDestroyTransform.GetComponentsInChildren<Connector>())
             { 
                 connector.gameObject.SetActive(false);
@@ -481,7 +489,7 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
-    public void changeBuildingTypeButton(SelectedBuildType selectedBuildType)
+    public void changeBuildingTypeButton(BuildType selectedBuildType)
     {
         currentBuildType = selectedBuildType;
     }
@@ -497,7 +505,7 @@ public class BuildingManager : MonoBehaviour
 
 
 [Serializable]
-public enum SelectedBuildType
+public enum BuildType
 { 
     floor,
     wall

@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class BuildableObjectButton : MonoBehaviour
 {
     [SerializeField] public BuildingManager buildingManager;
-    [SerializeField] public SelectedBuildType selectedBuildType;
+    [SerializeField] public BuildType selectedBuildType;
     [SerializeField] public int buildingIndex;
 
     private void Awake()
