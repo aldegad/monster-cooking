@@ -5,6 +5,7 @@ using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
+using Cinemachine;
 
 public class GameManager : NetworkBehaviour
 {
@@ -17,6 +18,11 @@ public class GameManager : NetworkBehaviour
     [Header("Databases")]
     [SerializeField] private CharacterDatabase characterDatabase;
     [SerializeField] private GameObject playerPrefab;
+
+    [Header("Auto Settings")]
+    [SerializeField] public GameState gameState = GameState.Menu;
+    [SerializeField] public PlayerFollowCamera playerFollowCamera;
+
 
     public static GameManager Instance { get; private set; }
 
@@ -151,4 +157,14 @@ public class GameManager : NetworkBehaviour
                 break;
         }
     }
+}
+
+
+[Serializable]
+public enum GameState
+{
+    Exploration,
+    BuildingUI,
+    Building,
+    Menu
 }

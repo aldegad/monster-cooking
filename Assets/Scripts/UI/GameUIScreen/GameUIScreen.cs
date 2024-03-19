@@ -7,8 +7,8 @@ public class GameUIScreen : MonoBehaviour
 {
     [SerializeField] GameMenu gameMenu;
 
-    private float maxSpeedX = 0f;
-    private float maxSpeedY = 0f;
+    private GameState prevGameState;
+
     private void Update()
     {
         if (Input.GetButtonDown("Cancel"))
@@ -19,9 +19,11 @@ public class GameUIScreen : MonoBehaviour
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
 
-                CinemachineFreeLook freelook = FindFirstObjectByType<CinemachineFreeLook>();
-                freelook.m_XAxis.m_MaxSpeed = maxSpeedX;
-                freelook.m_YAxis.m_MaxSpeed = maxSpeedY;
+                PlayerFollowCamera playerFollowCamera = GameManager.Instance.playerFollowCamera;
+                playerFollowCamera.freeLookCam.m_XAxis.m_MaxSpeed = playerFollowCamera.maxSpeedX;
+                playerFollowCamera.freeLookCam.m_YAxis.m_MaxSpeed = playerFollowCamera.maxSpeedY;
+
+                GameManager.Instance.gameState = prevGameState;
             }
             else
             {
@@ -29,11 +31,12 @@ public class GameUIScreen : MonoBehaviour
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
 
-                CinemachineFreeLook freelook = FindFirstObjectByType<CinemachineFreeLook>();
-                maxSpeedX = freelook.m_XAxis.m_MaxSpeed;
-                maxSpeedY = freelook.m_YAxis.m_MaxSpeed;
-                freelook.m_XAxis.m_MaxSpeed = 0f;
-                freelook.m_YAxis.m_MaxSpeed = 0f;
+                PlayerFollowCamera playerFollowCamera = GameManager.Instance.playerFollowCamera;
+                playerFollowCamera.freeLookCam.m_XAxis.m_MaxSpeed = 0f;
+                playerFollowCamera.freeLookCam.m_YAxis.m_MaxSpeed = 0f;
+
+                prevGameState = GameManager.Instance.gameState;
+                GameManager.Instance.gameState = GameState.Menu;
             }
         }
     }

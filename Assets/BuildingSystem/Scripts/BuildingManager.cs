@@ -4,14 +4,14 @@ using System;
 using UnityEngine;
 using TMPro;
 using Cinemachine;
+using UnityEngine.UI;
 
 public class BuildingManager : MonoBehaviour
 {
     [Header("Build Objects")]
     [SerializeField] private GameObject floorModule;
     [SerializeField] private GameObject wallModule;
-    [SerializeField] private List<GameObject> floorObjects = new List<GameObject>();
-    [SerializeField] private List<GameObject> wallObjects = new List<GameObject>();
+    [SerializeField] private List<BuildableGroup> buildableGroups = new List<BuildableGroup>();
 
     [Header("Build Settings")]
     [SerializeField] private LayerMask buildableLayers;
@@ -32,12 +32,19 @@ public class BuildingManager : MonoBehaviour
 
     [Header("Internal State")]
     [SerializeField] private bool isBuilding = false;
-    [SerializeField] private int currentBuildingIndex;
+    [SerializeField] private int currentBuildableGroupIndex;
+    [SerializeField] private int currentBuildableIndex;
 
-    [Header("Debug UI")]
-    [SerializeField] private BuildingUI buildingUI;
+    [Header("Building UI")]
+    [SerializeField] private GameObject buildingUI;
+    [SerializeField] private GameObject buildableTabGroup;
+    [SerializeField] private BuildableTab buildableTab;
+    [SerializeField] private GameObject buildableObjectContainer;
     [SerializeField] private GameObject buildableObjectGrid;
-    [SerializeField] private BuildableObjectButton selectBuildableObjectButton;
+    [SerializeField] private BuildableObjectButton buildableObjectButton;
+
+    private List<BuildableTab> buildableTabInstances = new List<BuildableTab>();
+    private List<GameObject> buildableObjectGridInstances = new List<GameObject>();
 
     private GameObject ghostBuildGameObject;
     private bool isGhostInvalidPosition = false;
@@ -48,30 +55,37 @@ public class BuildingManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         buildingUI.gameObject.SetActive(false);
 
-        for (int i = 0; i < floorObjects.Count; i++)
+        for (int i = 0; i < buildableGroups.Count; i++)
         {
-            GameObject floorObjectInstance = Instantiate(selectBuildableObjectButton.gameObject, buildableObjectGrid.transform);
-            BuildableObjectButton buildableObjectButton = floorObjectInstance.GetComponent<BuildableObjectButton>();
+            BuildableGroup buildableGroup = buildableGroups[i];
+            // set tabs
+            BuildableTab buildableTabInstance = Instantiate(buildableTab, buildableTabGroup.transform);
+            buildableTabInstances.Add(buildableTabInstance);
 
-            buildableObjectButton.buildingManager = this;
-            buildableObjectButton.selectedBuildType = BuildType.floor;
-            buildableObjectButton.buildingIndex = i;
-        }
+            buildableTabInstance.SetFields(this, i, buildableGroup.buildableGroupName);
+            if(i == 0) buildableTabInstance.Actiavate(true);
+            else buildableTabInstance.Actiavate(false);
 
-        for (int i = 0; i < wallObjects.Count; i++)
-        {
-            GameObject wallObjectInstance = Instantiate(selectBuildableObjectButton.gameObject, buildableObjectGrid.transform);
-            BuildableObjectButton buildableObjectButton = wallObjectInstance.GetComponent<BuildableObjectButton>();
+            // set tab grids
+            GameObject buildableObjectGridInstance = Instantiate(buildableObjectGrid, buildableObjectContainer.transform);
+            if (i != 0) buildableObjectGridInstance.SetActive(false);
+            buildableObjectGridInstances.Add(buildableObjectGridInstance);
 
-            buildableObjectButton.buildingManager = this;
-            buildableObjectButton.selectedBuildType = BuildType.wall;
-            buildableObjectButton.buildingIndex = i;
+            for (int j = 0; j < buildableGroup.buildableObjects.Count; j++)
+            {
+                BuildableObject buildableObject = buildableGroup.buildableObjects[j];
+
+                BuildableObjectButton buildableObjectButtonInstance = Instantiate(buildableObjectButton, buildableObjectGridInstance.transform);
+
+                buildableObjectButtonInstance.SetFields(this, buildableObject, i, j);
+            }
         }
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.B))
+        if ((GameManager.Instance.gameState == GameState.Exploration || GameManager.Instance.gameState == GameState.Building) && 
+            Input.GetKeyDown(KeyCode.B))
         {
             toggleBuildingUI(!buildingUI.gameObject.activeSelf);
         }
@@ -91,6 +105,14 @@ public class BuildingManager : MonoBehaviour
             ghostBuildGameObject = null;
         }
 
+        if (buildingUI.gameObject.activeSelf)
+        {
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                destroyBuildingToggle(true);
+            }
+        }
+
         if (isDestroying)
         {
             ghostDestroy();
@@ -99,6 +121,12 @@ public class BuildingManager : MonoBehaviour
             {
                 destroyBuild();
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            toggleBuildingUI(false);
+            destroyBuildingToggle(false);
         }
     }
 
@@ -345,21 +373,23 @@ public class BuildingManager : MonoBehaviour
 
     private GameObject getCurrentBuild(Transform transform = null)
     {
+        BuildableObject buildableObject = buildableGroups[currentBuildableGroupIndex].buildableObjects[currentBuildableIndex];
+        buildableObject.buildableObject.layer = LayerMask.NameToLayer("Building");
         switch (currentBuildType)
         {
             case BuildType.floor:
                 GameObject floorInstance = Instantiate(floorModule, transform.position, transform.rotation);
                 Transform floorModelParent = floorInstance.transform.GetChild(0);
-                floorInstance.name = floorObjects[currentBuildingIndex].name;
-                Instantiate(floorObjects[currentBuildingIndex], floorModelParent.transform);
+                floorInstance.name = buildableObject.name;
+                Instantiate(buildableObject.buildableObject, floorModelParent.transform);
 
                 return floorInstance;
 
             case BuildType.wall:
                 GameObject wallInstance = Instantiate(wallModule, transform.position, transform.rotation);
                 Transform wallModelParent = wallInstance.transform.GetChild(0);
-                wallInstance.name = wallObjects[currentBuildingIndex].name;
-                Instantiate(wallObjects[currentBuildingIndex], wallModelParent.transform);
+                wallInstance.name = buildableObject.name;
+                Instantiate(buildableObject.buildableObject, wallModelParent.transform);
 
                 return wallInstance;
         }
@@ -448,45 +478,30 @@ public class BuildingManager : MonoBehaviour
     public void toggleBuildingUI(bool active)
     {
         isBuilding = false;
+        isDestroying = false;
 
         buildingUI.gameObject.SetActive(active);
 
-        CinemachineFreeLook freelook = FindFirstObjectByType<CinemachineFreeLook>();
+        PlayerFollowCamera playerFollowCamera = GameManager.Instance.playerFollowCamera;
         if (active)
         {
-            freelook.m_XAxis.m_MaxSpeed = 0;
-            freelook.m_YAxis.m_MaxSpeed = 0;
+            playerFollowCamera.freeLookCam.m_XAxis.m_MaxSpeed = 0;
+            playerFollowCamera.freeLookCam.m_YAxis.m_MaxSpeed = 0;
         }
         else
         {
-            freelook.m_XAxis.m_MaxSpeed = 500;
-            freelook.m_YAxis.m_MaxSpeed = 4;
+            playerFollowCamera.freeLookCam.m_XAxis.m_MaxSpeed = playerFollowCamera.maxSpeedX;
+            playerFollowCamera.freeLookCam.m_YAxis.m_MaxSpeed = playerFollowCamera.maxSpeedY;
         }
 
         Cursor.visible = active;
         Cursor.lockState = active ? CursorLockMode.None : CursorLockMode.Locked;
     }
 
-    public void destroyBuildingToggle(bool fromScript = false)
+    public void destroyBuildingToggle(bool active)
     {
-        Color green;
-        Color red;
-        ColorUtility.TryParseHtmlString("#FF4747", out red);
-        ColorUtility.TryParseHtmlString("#48FF62", out green);
-
-        if (fromScript)
-        {
-            isDestroying = false;
-            buildingUI.DestroyText.text = "Destroy Off";
-            buildingUI.DestroyText.color = green;
-        }
-        else
-        {
-            isDestroying = !isDestroying;
-            buildingUI.DestroyText.text = isDestroying ? "Destroy On" : "Destroy Off";
-            buildingUI.DestroyText.color = isDestroying ? red : green;
-            toggleBuildingUI(false);
-        }
+        isDestroying = active;
+        toggleBuildingUI(false);
     }
 
     public void changeBuildingTypeButton(BuildType selectedBuildType)
@@ -494,12 +509,40 @@ public class BuildingManager : MonoBehaviour
         currentBuildType = selectedBuildType;
     }
 
-    public void startBuildingButton(int buildIndex)
+    public void startBuildingButton(int buildableGroupIndex, int buildableIndex)
     {
-        currentBuildingIndex = buildIndex;
+        currentBuildableGroupIndex = buildableGroupIndex;
+        currentBuildableIndex = buildableIndex;
         toggleBuildingUI(false);
 
         isBuilding = true;
+    }
+
+    public void changeBuildableGroup(int buildableGroupIndex)
+    {
+        currentBuildableGroupIndex = buildableGroupIndex;
+
+        // change tab
+        buildableTabInstances[currentBuildableGroupIndex].Actiavate(true);
+
+        for (int i = 0; i < buildableTabInstances.Count; i++)
+        {
+            if (i != currentBuildableGroupIndex)
+            {
+                buildableTabInstances[i].Actiavate(false);
+            }
+        }
+
+        // change tab container
+        buildableObjectGridInstances[currentBuildableGroupIndex].SetActive(true);
+
+        for (int i = 0; i < buildableObjectGridInstances.Count; i++)
+        {
+            if (i != currentBuildableGroupIndex)
+            {
+                buildableObjectGridInstances[i].SetActive(false);
+            }
+        }
     }
 }
 
@@ -508,5 +551,16 @@ public class BuildingManager : MonoBehaviour
 public enum BuildType
 { 
     floor,
-    wall
+    wall,
+    roof,
+    stair,
+    furniture
 }
+
+[Serializable]
+public class BuildableGroup
+{
+    public string buildableGroupName;
+    public List<BuildableObject> buildableObjects;
+}
+

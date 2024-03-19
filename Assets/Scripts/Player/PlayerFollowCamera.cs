@@ -6,11 +6,13 @@ using Cinemachine;
 public class PlayerFollowCamera : MonoBehaviour
 {
     [Header("Camera Default Setting")]
+    [SerializeField] public CinemachineFreeLook freeLookCam;
+    [SerializeField] public float maxSpeedX = 500f;
+    [SerializeField] public float maxSpeedY = 4f;
     [SerializeField] private float topRigHeight = 3.17f, topRigRadius = 1.67f;
     [SerializeField] private float middleRigHeight = 0.9f, middleRigRadius = 2.09f;
     [SerializeField] private float bottomRigHeight = 0.04f, bottomRigRadius = 0.88f;
 
-    private CinemachineFreeLook freeLookCam;
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
@@ -21,6 +23,10 @@ public class PlayerFollowCamera : MonoBehaviour
 
     void Start()
     {
+        // set speed
+        freeLookCam.m_XAxis.m_MaxSpeed = maxSpeedX;
+        freeLookCam.m_YAxis.m_MaxSpeed = maxSpeedY;
+
         // Top Rig ¼³Á¤
         freeLookCam.m_Orbits[0].m_Radius = topRigRadius;
         freeLookCam.m_Orbits[0].m_Height = topRigHeight;

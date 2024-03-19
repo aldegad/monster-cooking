@@ -7,7 +7,7 @@ using Cinemachine;
 public class PlayerBase : NetworkBehaviour
 {
     [Header("Camera")]
-    [SerializeField] private CinemachineFreeLook playerFollowCamera;
+    [SerializeField] private PlayerFollowCamera playerFollowCamera;
 
     [SerializeField] private GameObject follow;
     [SerializeField] private GameObject lookAt;
@@ -70,14 +70,18 @@ public class PlayerBase : NetworkBehaviour
         gameObject.GetComponent<AudioListener>().enabled = true;
 
         // camera
-        CinemachineFreeLook playerFollowCameraInstance = Instantiate(playerFollowCamera);
-        playerFollowCameraInstance.Follow = follow.transform;
-        playerFollowCameraInstance.LookAt = lookAt.transform;
+        PlayerFollowCamera playerFollowCameraInstance = Instantiate(playerFollowCamera);
+        playerFollowCameraInstance.freeLookCam.Follow = follow.transform;
+        playerFollowCameraInstance.freeLookCam.LookAt = lookAt.transform;
+
+        // set to global
+        GameManager.Instance.playerFollowCamera = playerFollowCameraInstance;
+        GameManager.Instance.gameState = GameState.Exploration;
     }
 
     private void UpdateState()
     {
-        if (Input.GetButton("Horizontal") || Input.GetButton("Vertical"))
+        if (GameManager.Instance.gameState == GameState.Exploration && Input.GetButton("Horizontal") || Input.GetButton("Vertical"))
         {
             if (Input.GetKey(KeyCode.LeftShift))
             {
@@ -96,7 +100,7 @@ public class PlayerBase : NetworkBehaviour
             isSprint = false;
         }
 
-        if (Input.GetKeyDown(KeyCode.C))
+        if (GameManager.Instance.gameState == GameState.Exploration && Input.GetKeyDown(KeyCode.C))
         {
             isCrouch = !isCrouch;
         }
@@ -139,7 +143,7 @@ public class PlayerBase : NetworkBehaviour
             remainJumpDelayTime -= Time.deltaTime;
         }
 
-        if (Input.GetButtonDown("Jump") && isGround && remainJumpDelayTime <= 0f)
+        if (GameManager.Instance.gameState == GameState.Exploration && Input.GetButtonDown("Jump") && isGround && remainJumpDelayTime <= 0f)
         {
             isJump = true;
         }
