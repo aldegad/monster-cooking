@@ -21,7 +21,7 @@ public class BuildingManager : MonoBehaviour
     [Header("Destroy Settings")]
     [SerializeField] private bool isDestroying = false;
     private Transform lastHitDestroyTransform;
-    private List<Material> LastHitMaterials = new List<Material>();
+    private List<Material[]> LastHitMaterials = new List<Material[]>();
 
 
     [Header("Ghost Settings")]
@@ -84,10 +84,16 @@ public class BuildingManager : MonoBehaviour
 
     private void Update()
     {
-        if ((GameManager.Instance.gameState == GameState.Exploration || GameManager.Instance.gameState == GameState.Building) && 
-            Input.GetKeyDown(KeyCode.B))
+        if (Input.GetKeyDown(KeyCode.B))
         {
-            toggleBuildingUI(!buildingUI.gameObject.activeSelf);
+            if (GameManager.Instance.GameState == GameState.Exploration || GameManager.Instance.GameState == GameState.Building)
+            {
+                toggleBuildingUI(true);
+            }
+            else
+            {
+                toggleBuildingUI(false);
+            }
         }
 
         if (isBuilding && !isDestroying)
@@ -99,7 +105,8 @@ public class BuildingManager : MonoBehaviour
                 placeBuild();
             }
         }
-        else if (ghostBuildGameObject)
+
+        if (!isBuilding && ghostBuildGameObject)
         { 
             Destroy(ghostBuildGameObject);
             ghostBuildGameObject = null;
@@ -109,6 +116,7 @@ public class BuildingManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.C))
             {
+                GameManager.Instance.GameState = GameState.Building;
                 destroyBuildingToggle(true);
             }
         }
@@ -121,6 +129,11 @@ public class BuildingManager : MonoBehaviour
             {
                 destroyBuild();
             }
+        }
+
+        if (!isDestroying && lastHitDestroyTransform)
+        {
+            resetLastDestroyTransform();
         }
 
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -359,7 +372,12 @@ public class BuildingManager : MonoBehaviour
         {
             foreach (MeshRenderer meshRenderer in modelParent.GetComponentsInChildren<MeshRenderer>())
             {
-                meshRenderer.material = ghostMaterial;
+                Material[] ghostMaterials = new Material[meshRenderer.materials.Length];
+                for (int i = 0; i < meshRenderer.materials.Length; i++)
+                {
+                    ghostMaterials[i] = ghostMaterial;
+                }
+                meshRenderer.materials = ghostMaterials;
             }
         }
         else
@@ -429,7 +447,7 @@ public class BuildingManager : MonoBehaviour
                     LastHitMaterials.Clear();
                     foreach (MeshRenderer lastHitMeshRenderers in lastHitDestroyTransform.GetComponentsInChildren<MeshRenderer>())
                     {
-                        LastHitMaterials.Add(lastHitMeshRenderers.material);
+                        LastHitMaterials.Add(lastHitMeshRenderers.materials);
                     }
 
                     ghostifyModel(lastHitDestroyTransform.GetChild(0), ghostMaterialInvalid);
@@ -451,7 +469,7 @@ public class BuildingManager : MonoBehaviour
         int counter = 0;
         foreach (MeshRenderer lastHitMeshRenderer in lastHitDestroyTransform.GetComponentsInChildren<MeshRenderer>())
         {
-            lastHitMeshRenderer.material = LastHitMaterials[counter];
+            lastHitMeshRenderer.materials = LastHitMaterials[counter];
             counter++;
         }
 
@@ -477,25 +495,33 @@ public class BuildingManager : MonoBehaviour
 
     public void toggleBuildingUI(bool active)
     {
-        isBuilding = false;
-        isDestroying = false;
+        if (active)
+        {
+            GameManager.Instance.GameState = GameState.BuildingUI;
+            isBuilding = false;
+            isDestroying = false;
+        }
+        else
+        {   if (isBuilding || isDestroying)
+            {
+                GameManager.Instance.GameState = GameState.Building;
+            }
+            else
+            {
+                GameManager.Instance.GameState = GameState.Exploration;
+            }
+        }
 
         buildingUI.gameObject.SetActive(active);
 
-        PlayerFollowCamera playerFollowCamera = GameManager.Instance.playerFollowCamera;
         if (active)
         {
-            playerFollowCamera.freeLookCam.m_XAxis.m_MaxSpeed = 0;
-            playerFollowCamera.freeLookCam.m_YAxis.m_MaxSpeed = 0;
+            GameManager.Instance.PauseCamera();
         }
         else
         {
-            playerFollowCamera.freeLookCam.m_XAxis.m_MaxSpeed = playerFollowCamera.maxSpeedX;
-            playerFollowCamera.freeLookCam.m_YAxis.m_MaxSpeed = playerFollowCamera.maxSpeedY;
+            GameManager.Instance.ResumeCamera();
         }
-
-        Cursor.visible = active;
-        Cursor.lockState = active ? CursorLockMode.None : CursorLockMode.Locked;
     }
 
     public void destroyBuildingToggle(bool active)
@@ -511,11 +537,12 @@ public class BuildingManager : MonoBehaviour
 
     public void startBuildingButton(int buildableGroupIndex, int buildableIndex)
     {
+        GameManager.Instance.GameState = GameState.Building;
         currentBuildableGroupIndex = buildableGroupIndex;
         currentBuildableIndex = buildableIndex;
-        toggleBuildingUI(false);
 
         isBuilding = true;
+        toggleBuildingUI(false);
     }
 
     public void changeBuildableGroup(int buildableGroupIndex)

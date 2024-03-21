@@ -13,20 +13,25 @@ public class GameManager : NetworkBehaviour
 
     [Header("Scenes")]
     [SerializeField] public string mainMenuScene = "MainMenuScene";
-    [SerializeField] public string gameScene = "TestGameScene";
+    [SerializeField] public string gameScene = "GameScene";
 
     [Header("Databases")]
     [SerializeField] private CharacterDatabase characterDatabase;
     [SerializeField] private GameObject playerPrefab;
 
     [Header("Auto Settings")]
-    [SerializeField] public GameState gameState = GameState.Menu;
-    [SerializeField] public PlayerFollowCamera playerFollowCamera;
+    [SerializeField] private PlayerFollowCamera playerFollowCamera;
+    [SerializeField] private GameState gameState = GameState.Menu;
 
 
     public static GameManager Instance { get; private set; }
 
     public NetworkList<PlayerData> players;
+    public GameState GameState
+    {
+        get { return gameState; }
+        set { gameState = value; }
+    }
 
 
     public CharacterDatabase CharacterDatabase => characterDatabase;
@@ -48,15 +53,8 @@ public class GameManager : NetworkBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
+        DontDestroyOnLoad(gameObject);
+        Instance = this;
     }
 
     public async void StartHost()
@@ -74,6 +72,11 @@ public class GameManager : NetworkBehaviour
         return ServerManager.Instance.StartClient(joinCode);
     }
 
+    public void StartGame()
+    {
+        NetworkManager.Singleton.SceneManager.LoadScene(gameScene, LoadSceneMode.Single);
+    }
+
     public void AddPlayer(ulong clientId)
     {
         players.Add(new PlayerData(clientId));
@@ -89,13 +92,28 @@ public class GameManager : NetworkBehaviour
                 break;
             }
         }
-        
     }
 
-    public void StartGame()
+    public void SetCamera(PlayerFollowCamera playerFollowCamera)
     {
-        NetworkManager.Singleton.SceneManager.LoadScene(gameScene, LoadSceneMode.Single);
+        this.playerFollowCamera = playerFollowCamera;
     }
+    public void ResumeCamera()
+    {
+        playerFollowCamera.freeLookCam.m_XAxis.m_MaxSpeed = playerFollowCamera.maxSpeedX;
+        playerFollowCamera.freeLookCam.m_YAxis.m_MaxSpeed = playerFollowCamera.maxSpeedY;
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    public void PauseCamera()
+    {
+        playerFollowCamera.freeLookCam.m_XAxis.m_MaxSpeed = 0;
+        playerFollowCamera.freeLookCam.m_YAxis.m_MaxSpeed = 0;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+    }
+    
 
     public int GetPlayerIndex(ulong clientId)
     {
