@@ -6,8 +6,9 @@ using TMPro;
 using Cinemachine;
 using UnityEngine.UI;
 using System.Linq;
+using Unity.Netcode;
 
-public class BuildingManager : MonoBehaviour
+public class BuildingManager : NetworkBehaviour
 {
     [Header("Build Objects")]
     [SerializeField] private BuildableModule floorModule;
@@ -34,13 +35,16 @@ public class BuildingManager : MonoBehaviour
 
     [Header("Internal State")]
     [SerializeField] private bool isBuilding = false;
+    [SerializeField] private BuildableModule ghostModule;
+    [SerializeField] private bool isGhostValidPosition;
     [SerializeField] private float currentGroundAngle;
     [SerializeField] private int currentBuildableGroupIndex;
     [SerializeField] private int currentBuildableIndex;
 
 
-    private BuildableModule ghostBuildableModule;
-    private bool isGhostValidPosition = false;
+    private ulong localClientId;
+    private Dictionary<ulong, BuildingClientData> buildingClientDatas = new Dictionary<ulong, BuildingClientData>();
+    private bool isNetworkSpawn;
 
     public static BuildingManager Instance { get; private set; }
     public List<BuildableGroup> BuildableGroups => buildableGroups;
@@ -52,8 +56,51 @@ public class BuildingManager : MonoBehaviour
         Instance = this;
     }
 
+    public override void OnNetworkSpawn()
+    {
+        localClientId = NetworkManager.Singleton.LocalClientId;
+        InitializeServerRpc();
+    }
+    [ServerRpc(RequireOwnership = false)]
+    private void InitializeServerRpc(ServerRpcParams rpcParams = default)
+    {
+        ulong senderClientId = rpcParams.Receive.SenderClientId;
+
+        ClientRpcParams newClientRpcParams = ServerManager.Instance.TargetClient(senderClientId);
+        ClientRpcParams clientRpcParams = ServerManager.Instance.ExceptTargetClient(senderClientId);
+
+        // new player
+        foreach (var kvp in buildingClientDatas)
+        {
+            ulong clientId = kvp.Key;
+            BuildingClientData ClientData = kvp.Value;
+            SyncDataClientRpc(clientId, ClientData.isBuilding, ClientData.isDestroying, ClientData.isGhostValidPosition, ClientData.currentBuildableGroupIndex, ClientData.currentBuildableIndex, ClientData.ghostPosition, ClientData.ghostRotation, newClientRpcParams);
+        }
+
+        // all players
+        AddDataClientRpc(rpcParams.Receive.SenderClientId);
+    }
+    [ClientRpc]
+    private void AddDataClientRpc(ulong senderClientId)
+    {
+        buildingClientDatas[senderClientId] = new BuildingClientData();
+        if (localClientId == senderClientId) 
+        {
+            isNetworkSpawn = true;
+        }
+    }
+
+    [ClientRpc]
+    private void SyncDataClientRpc(ulong clientId, bool isBuilding, bool isDestroying, bool isGhostValidPosition, int currentBuildableGroupIndex, int currentBuildableIndex, Vector3 ghostPosition, Quaternion ghostRotation, ClientRpcParams _ = default)
+    {
+        buildingClientDatas[clientId] = new BuildingClientData(isBuilding, isDestroying, isGhostValidPosition, currentBuildableGroupIndex, currentBuildableIndex, ghostPosition, ghostRotation);
+    }
+
     private void Update()
     {
+        if (!isNetworkSpawn) { return; }
+
+        // 어차피 얘는 오너거 하나밖에 없음. 플레이어 오브젝트와 달리 각자 하나씩 가지고 있음.
         if (Input.GetKeyDown(KeyCode.B))
         {
             if (GameManager.Instance.GameState == GameState.Exploration || GameManager.Instance.GameState == GameState.Building)
@@ -95,9 +142,9 @@ public class BuildingManager : MonoBehaviour
             }
         }
 
-        if (!isBuilding && !isDestroying && ghostBuildableModule != null)
+        if (!isBuilding && !isDestroying && ghostModule != null)
         {
-            Destroy(ghostBuildableModule.gameObject);
+            Destroy(ghostModule.gameObject);
         }
 
         if (!isDestroying && lastHitDestroyTransform)
@@ -111,13 +158,119 @@ public class BuildingManager : MonoBehaviour
             toggleBuildingUI(false);
             destroyBuildingToggle(false);
         }
+
+        UpdateInternalState();
+    }
+
+    private void UpdateInternalState()
+    {
+        if (ghostModule)
+        {
+            UpdateInternalStateServerRpc(isBuilding, isDestroying, isGhostValidPosition, currentBuildableGroupIndex, currentBuildableIndex, ghostModule.transform.position, ghostModule.transform.rotation);
+        }
+        else
+        {
+            UpdateInternalStateServerRpc(isBuilding, isDestroying, isGhostValidPosition, currentBuildableGroupIndex, currentBuildableIndex);
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void UpdateInternalStateServerRpc(bool isBuilding, bool isDestroying, bool isGhostValidPosition, int currentBuildableGroupIndex, int currentBuildableIndex, Vector3 ghostPosition = new Vector3(), Quaternion ghostRotation = new Quaternion(), ServerRpcParams rpcParams = default)
+    {
+        UpdateInternalStateClientRpc(rpcParams.Receive.SenderClientId, isBuilding, isDestroying, isGhostValidPosition, currentBuildableGroupIndex, currentBuildableIndex, ghostPosition, ghostRotation);
+    }
+
+    [ClientRpc]
+    private void UpdateInternalStateClientRpc(ulong senderClientId, bool isBuilding, bool isDestroying, bool isGhostValidPosition, int currentBuildableGroupIndex, int currentBuildableIndex, Vector3 ghostPosition, Quaternion ghostRotation)
+    {
+        if (!buildingClientDatas.ContainsKey(senderClientId)) { return; }
+
+        bool prevGhostValidPosition = buildingClientDatas[senderClientId].isGhostValidPosition;
+        buildingClientDatas[senderClientId].isBuilding = isBuilding;
+        buildingClientDatas[senderClientId].isDestroying = isDestroying;
+        buildingClientDatas[senderClientId].isGhostValidPosition = isGhostValidPosition;
+        buildingClientDatas[senderClientId].currentBuildableGroupIndex = currentBuildableGroupIndex;
+        buildingClientDatas[senderClientId].currentBuildableIndex = currentBuildableIndex;
+        buildingClientDatas[senderClientId].ghostPosition = ghostPosition;
+        buildingClientDatas[senderClientId].ghostRotation = ghostRotation;
+
+        if (localClientId == senderClientId) { return; }
+
+        if (isBuilding && !isDestroying)
+        {
+            if (buildingClientDatas[senderClientId].ghostModule == null)
+            {
+                BuildableModule currentBuild = getCurrentBuild(transform, currentBuildableGroupIndex, currentBuildableIndex);
+                buildingClientDatas[senderClientId].ghostModule = currentBuild;
+                buildingClientDatas[senderClientId].ghostModule.isGhost = true;
+
+                ghostifyModel(currentBuild.ModelParent, ghostMaterialValid);
+                ghostifyModel(currentBuild.ModelParent);
+            }
+            
+            buildingClientDatas[senderClientId].ghostModule.transform.position = ghostPosition;
+            buildingClientDatas[senderClientId].ghostModule.transform.rotation = ghostRotation;
+
+            if (prevGhostValidPosition != isGhostValidPosition)
+            {
+                ghostifyModel(buildingClientDatas[senderClientId].ghostModule.ModelParent, isGhostValidPosition ? ghostMaterialValid : ghostMaterialInvalid);
+            }
+        }
+
+        if (!isBuilding && !isDestroying && buildingClientDatas[senderClientId].ghostModule != null)
+        {
+            Destroy(buildingClientDatas[senderClientId].ghostModule.gameObject);
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        foreach (var kvp in buildingClientDatas)
+        {
+            ulong clientId = kvp.Key;
+            BuildableModule module = kvp.Value.ghostModule;
+
+            if (module != null && module.ModelParent != null)
+            {
+                // 전체 모듈의 경계를 계산합니다.
+                Bounds bounds = CalculateTotalBounds(module.ModelParent);
+
+                Collider[] colliders = Physics.OverlapBox(bounds.center, bounds.extents, module.transform.rotation, connectorLayer);
+                Collider[] newColliders = RemoveghostConnector(module, colliders);
+
+                // 원의 색상 설정
+                Gizmos.color = Color.red;
+
+                foreach (Collider collider in newColliders)
+                {
+                    if (collider is SphereCollider sphereCollider)
+                    {
+                        // SphereCollider의 월드 스케일을 고려한 실제 반지름을 계산합니다.
+                        float scaledRadius = sphereCollider.radius * Mathf.Max(sphereCollider.transform.lossyScale.x, sphereCollider.transform.lossyScale.y, sphereCollider.transform.lossyScale.z);
+
+                        // Gizmos를 SphereCollider의 실제 크기에 맞춰 그립니다.
+                        Gizmos.DrawWireSphere(collider.transform.position, scaledRadius);
+                    }
+                }
+
+                // Gizmos를 그릴 때 사용할 색상 설정
+                Gizmos.color = Color.green;
+
+                // Gizmos의 매트릭스를 오브젝트의 월드 위치와 회전으로 설정합니다.
+                Matrix4x4 rotationMatrix = Matrix4x4.TRS(bounds.center, module.transform.rotation, Vector3.one);
+                Gizmos.matrix = rotationMatrix;
+
+                // 계산된 전체 경계를 기반으로 와이어프레임 상자를 그립니다.
+                Gizmos.DrawWireCube(Vector3.zero, bounds.size);
+            }
+        }
     }
 
     private void ghostBuild()
     {
-        if (ghostBuildableModule == null)
+        if (ghostModule == null)
         {
-            BuildableModule currentBuild = getCurrentBuild(transform);
+            BuildableModule currentBuild = getCurrentBuild(transform, currentBuildableGroupIndex, currentBuildableIndex);
             createGhostPrefab(currentBuild);
         }
 
@@ -127,10 +280,10 @@ public class BuildingManager : MonoBehaviour
 
     private void createGhostPrefab(BuildableModule currentBuild)
     {
-        ghostBuildableModule = currentBuild;
-
-        ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialValid);
-        ghostifyModel(ghostBuildableModule.ModelParent);
+        ghostModule = currentBuild;
+        ghostModule.isGhost = true;
+        ghostifyModel(currentBuild.ModelParent, ghostMaterialValid);
+        ghostifyModel(currentBuild.ModelParent);
     }
 
     private void moveGhostPrefabToRaycast()
@@ -142,52 +295,17 @@ public class BuildingManager : MonoBehaviour
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, buildableLayers))
         {
             // 레이캐스트가 어떤 오브젝트에 맞았다면, 'ghostBuildGameObject'의 위치를 맞은 지점으로 이동시킵니다.
-            ghostBuildableModule.transform.position = hit.point;
-        }
-    }
-
-    void OnDrawGizmos()
-    {
-        if (ghostBuildableModule != null)
-        {
-            // 전체 모듈의 경계를 계산합니다.
-            Bounds bounds = CalculateTotalBounds(ghostBuildableModule.ModelParent);
-
-            Collider[] colliders = Physics.OverlapBox(bounds.center, bounds.extents, ghostBuildableModule.transform.rotation, connectorLayer);
-            Collider[] newColliders = RemoveMyConnector(ghostBuildableModule, colliders);
-
-            // 원의 색상 설정
-            Gizmos.color = Color.red;
-
-            foreach (Collider collider in newColliders)
-            {
-                SphereCollider sphereCollider = collider as SphereCollider;
-                // SphereCollider의 월드 스케일을 고려한 실제 반지름을 계산합니다.
-                float scaledRadius = sphereCollider.radius * sphereCollider.transform.lossyScale.x;
-
-                // Gizmos를 SphereCollider의 실제 크기에 맞춰 그립니다.
-                Gizmos.DrawWireSphere(collider.transform.position, scaledRadius);
-            }
-
-            // Gizmos를 그릴 때 사용할 색상 설정
-            Gizmos.color = Color.green;
-
-            // Gizmos의 매트릭스를 오브젝트의 월드 위치와 회전으로 설정합니다.
-            Matrix4x4 rotationMatrix = Matrix4x4.TRS(bounds.center, ghostBuildableModule.transform.rotation, Vector3.one);
-            Gizmos.matrix = rotationMatrix;
-
-            // 계산된 전체 경계를 기반으로 와이어프레임 상자를 그립니다.
-            Gizmos.DrawWireCube(Vector3.zero, bounds.size);
+            ghostModule.transform.position = hit.point;
         }
     }
 
     private void checkBuildValidity()
     {
-        Bounds bounds = CalculateTotalBounds(ghostBuildableModule.ModelParent);
+        Bounds bounds = CalculateTotalBounds(ghostModule.ModelParent);
 
-        Collider[] colliders = Physics.OverlapBox(bounds.center, bounds.extents, ghostBuildableModule.transform.rotation, connectorLayer);
+        Collider[] colliders = Physics.OverlapBox(bounds.center, bounds.extents, ghostModule.transform.rotation, connectorLayer);
 
-        Collider[] newColliders = RemoveMyConnector(ghostBuildableModule, colliders);
+        Collider[] newColliders = RemoveghostConnector(ghostModule, colliders);
         if (newColliders.Length > 0)
         {
             ghostConnectBuild(newColliders);
@@ -198,12 +316,12 @@ public class BuildingManager : MonoBehaviour
 
             if (isGhostValidPosition)
             {
-                Collider[] overlapColliders = Physics.OverlapBox(bounds.center, bounds.extents, ghostBuildableModule.transform.rotation, buildingLayer);
+                Collider[] overlapColliders = Physics.OverlapBox(bounds.center, bounds.extents, ghostModule.transform.rotation, buildingLayer);
                 foreach (Collider overapCollider in overlapColliders)
                 {
-                    if (overapCollider.transform.root.gameObject != ghostBuildableModule.gameObject && overapCollider.transform.root.CompareTag("Buildables"))
+                    if (overapCollider.transform.root.gameObject != ghostModule.gameObject && overapCollider.transform.root.CompareTag("Buildables"))
                     {
-                        ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialInvalid);
+                        ghostifyModel(ghostModule.ModelParent, ghostMaterialInvalid);
                         isGhostValidPosition = false;
                         return;
                     }
@@ -224,12 +342,9 @@ public class BuildingManager : MonoBehaviour
         return bounds;
     }
 
-    private Collider[] RemoveMyConnector(BuildableModule ghostBuildGameObject, Collider[] colliders)
+    private Collider[] RemoveghostConnector(BuildableModule ghostBuildGameObject, Collider[] colliders)
     {
-        Connector[] myConnectors = ghostBuildGameObject.transform.GetChild(1).GetComponentsInChildren<Connector>();
-        Collider[] myConnectorColliders = myConnectors.Select(connector => connector.GetComponent<Collider>()).ToArray();
-
-        return colliders.Where(collider => !myConnectorColliders.Contains(collider)).ToArray();
+        return colliders.Where(collider => !collider.GetComponent<Connector>().isGhostParent).ToArray();
     }
 
     private void ghostConnectBuild(Collider[] colliders)
@@ -250,7 +365,7 @@ public class BuildingManager : MonoBehaviour
             currentBuildType == BuildType.floor && bestConnector.isConnectedToFloor ||
             currentBuildType == BuildType.wall && bestConnector.isConnectedToWall)
         {
-            ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialInvalid);
+            ghostifyModel(ghostModule.ModelParent, ghostMaterialInvalid);
             isGhostValidPosition = false;
             return;
         }
@@ -260,17 +375,17 @@ public class BuildingManager : MonoBehaviour
 
     private void snapGhostPrefabToConnector(Connector connector)
     {
-        Transform ghostConnector = findSnapConnector(connector.transform, ghostBuildableModule.transform.GetChild(1));
-        ghostBuildableModule.transform.position = connector.transform.position - (ghostConnector.position - ghostBuildableModule.transform.position);
+        Transform ghostConnector = findSnapConnector(connector.transform, ghostModule.ConnectorParent);
+        ghostModule.transform.position = connector.transform.position - (ghostConnector.position - ghostModule.transform.position);
 
         if (currentBuildType == BuildType.wall)
         {
-            Quaternion newRotation = ghostBuildableModule.transform.rotation;
+            Quaternion newRotation = ghostModule.transform.rotation;
             newRotation.eulerAngles = new Vector3(newRotation.eulerAngles.x, connector.transform.rotation.eulerAngles.y, newRotation.eulerAngles.z);
-            ghostBuildableModule.transform.rotation = newRotation;
+            ghostModule.transform.rotation = newRotation;
         }
 
-        ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialValid);
+        ghostifyModel(ghostModule.ModelParent, ghostMaterialValid);
         isGhostValidPosition = true;
     }
 
@@ -283,7 +398,7 @@ public class BuildingManager : MonoBehaviour
         {
             if(currentBuildType == BuildType.wall)
             {
-                ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialInvalid);
+                ghostifyModel(ghostModule.ModelParent, ghostMaterialInvalid);
                 isGhostValidPosition = false;
                 return;
             }
@@ -291,18 +406,18 @@ public class BuildingManager : MonoBehaviour
             currentGroundAngle = Vector3.Angle(hit.normal, Vector3.up);
             if (currentGroundAngle < maxGroundAngle)
             {
-                ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialValid);
+                ghostifyModel(ghostModule.ModelParent, ghostMaterialValid);
                 isGhostValidPosition = true;
             }
             else
             {
-                ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialInvalid);
+                ghostifyModel(ghostModule.ModelParent, ghostMaterialInvalid);
                 isGhostValidPosition = false;
             }
         }
     }
 
-    private Transform findSnapConnector(Transform snapConnector, Transform ghostConnectorParent)
+    private Transform findSnapConnector(Transform snapConnector, GameObject ghostConnectorParent)
     {
         ConnectorPosition OppositeConnectorTag = getOppositePosition(snapConnector.GetComponent<Connector>());
 
@@ -363,11 +478,11 @@ public class BuildingManager : MonoBehaviour
 
         if (topBottom)
         {
-            return cameraTransform.position.z >= ghostBuildableModule.transform.position.z ? ConnectorPosition.bottom : ConnectorPosition.top;
+            return cameraTransform.position.z >= ghostModule.transform.position.z ? ConnectorPosition.bottom : ConnectorPosition.top;
         }
         else
         {
-            return cameraTransform.position.x >= ghostBuildableModule.transform.position.x ? ConnectorPosition.left : ConnectorPosition.right;
+            return cameraTransform.position.x >= ghostModule.transform.position.x ? ConnectorPosition.left : ConnectorPosition.right;
         }
     }
 
@@ -394,7 +509,7 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
-    private BuildableModule getCurrentBuild(Transform transform)
+    private BuildableModule getCurrentBuild(Transform transform, int currentBuildableGroupIndex, int currentBuildableIndex)
     {
         BuildableObject buildableObject = buildableGroups[currentBuildableGroupIndex].buildableObjects[currentBuildableIndex];
         buildableObject.buildableObject.layer = LayerMask.NameToLayer("Building");
@@ -420,22 +535,53 @@ public class BuildingManager : MonoBehaviour
 
     private void placeBuild()
     { 
-        if(ghostBuildableModule != null && isGhostValidPosition)
+        if(ghostModule != null && isGhostValidPosition)
         {
-            foreach (Connector connector in ghostBuildableModule.GetComponentsInChildren<Connector>())
+            foreach (Connector connector in ghostModule.GetComponentsInChildren<Connector>())
             {
                 connector.gameObject.SetActive(false);
             }
 
-            BuildableModule newBuild = getCurrentBuild(ghostBuildableModule.transform);
+            BuildableModule newBuild = getCurrentBuild(ghostModule.transform, currentBuildableGroupIndex, currentBuildableIndex);
+            placeBuildServerRpc(currentBuildableGroupIndex, currentBuildableIndex, ghostModule.transform.position, ghostModule.transform.rotation);
 
-            Destroy(ghostBuildableModule.gameObject);
-            ghostBuildableModule = null;
+            Destroy(ghostModule.gameObject);
+            ghostModule = null;
 
             foreach (Connector connector in newBuild.GetComponentsInChildren<Connector>())
-            { 
+            {
                 connector.updateConnectors(true);
             }
+        }
+    }
+    [ServerRpc(RequireOwnership = false)]
+    private void placeBuildServerRpc(int currentBuildableGroupIndex, int currentBuildableIndex, Vector3 ghostPosition, Quaternion ghostRotation, ServerRpcParams rpcParams = default)
+    {
+        placeBuildClientRpc(rpcParams.Receive.SenderClientId, currentBuildableGroupIndex, currentBuildableIndex, ghostPosition, ghostRotation);
+    }
+
+    [ClientRpc]
+    private void placeBuildClientRpc(ulong senderClientId, int currentBuildableGroupIndex, int currentBuildableIndex, Vector3 ghostPosition, Quaternion ghostRotation)
+    {
+        if (localClientId == senderClientId) { return; }
+
+        // because data delay
+        buildingClientDatas[senderClientId].ghostModule.transform.position = ghostPosition;
+        buildingClientDatas[senderClientId].ghostModule.transform.rotation = ghostRotation;
+
+        foreach (Connector connector in buildingClientDatas[senderClientId].ghostModule.GetComponentsInChildren<Connector>())
+        {
+            connector.gameObject.SetActive(false);
+        }
+
+        BuildableModule newBuild = getCurrentBuild(buildingClientDatas[senderClientId].ghostModule.transform, currentBuildableGroupIndex, currentBuildableIndex);
+
+        Destroy(buildingClientDatas[senderClientId].ghostModule.gameObject);
+        buildingClientDatas[senderClientId].ghostModule = null;
+
+        foreach (Connector connector in newBuild.GetComponentsInChildren<Connector>())
+        {
+            connector.updateConnectors(true);
         }
     }
 

@@ -7,6 +7,7 @@ public class Connector : MonoBehaviour
 {
     public ConnectorPosition connectorPosition;
     public BuildType connectorParentType;
+    public bool isGhostParent;
 
     [SerializeField] public bool isConnectedToFloor = false;
     [SerializeField] public bool isConnectedToWall = false;

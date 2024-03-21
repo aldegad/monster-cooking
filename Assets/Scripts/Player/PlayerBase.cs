@@ -35,8 +35,6 @@ public class PlayerBase : NetworkBehaviour
 
     private Vector3 previousPosition;
     private Vector3 velocity;
-    
-    
 
     public override void OnNetworkSpawn()
     {

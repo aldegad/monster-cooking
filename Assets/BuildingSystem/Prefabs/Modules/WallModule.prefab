@@ -82,6 +82,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   modelParent: {fileID: 5714171114361652238}
+  connectorParent: {fileID: 3760486974293933829}
 --- !u!1 &5714171114361652238
 GameObject:
   m_ObjectHideFlags: 0

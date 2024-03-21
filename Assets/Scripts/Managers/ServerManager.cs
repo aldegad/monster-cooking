@@ -8,6 +8,8 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
 using System;
+using System.Linq;
+using System.Collections.Generic;
 
 public class ServerManager : NetworkBehaviour
 {
@@ -60,6 +62,37 @@ public class ServerManager : NetworkBehaviour
         }
 
         return isJoined;
+    }
+
+    public ClientRpcParams TargetClient(ulong clientId)
+    {
+        ClientRpcParams clientRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new ulong[] { clientId }
+            }
+        };
+        return clientRpcParams;
+    }
+    public ClientRpcParams ExceptTargetClient(ulong clientId)
+    {
+        // 연결된 모든 클라이언트의 ID를 가져옵니다.
+        IReadOnlyList<ulong> allClientIds = NetworkManager.Singleton.ConnectedClientsIds;
+
+        // 제외할 클라이언트를 제외한 ID 목록을 생성합니다.
+        ulong[] targetClientIds = allClientIds.Where(id => id != clientId).ToArray();
+
+        // 특정 클라이언트를 제외한 나머지 클라이언트에게만 메시지를 전송하기 위한 ClientRpcParams를 설정합니다.
+        ClientRpcParams clientRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = targetClientIds
+            }
+        };
+
+        return clientRpcParams;
     }
 
     private void ApprovalCallback(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)

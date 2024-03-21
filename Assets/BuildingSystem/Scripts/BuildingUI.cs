@@ -42,8 +42,6 @@ public class BuildingUI : MonoBehaviour
                 buildableObjectButtonInstance.SetFields(buildableObject, i, j);
             }
         }
-
-        gameObject.SetActive(false);
     }
 
     public void ChangeBuildableGroup(int buildableGroupIndex)
