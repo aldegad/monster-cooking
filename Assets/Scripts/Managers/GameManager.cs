@@ -16,7 +16,6 @@ public class GameManager : NetworkBehaviour
     [SerializeField] public string gameScene = "GameScene";
 
     [Header("Databases")]
-    [SerializeField] private CharacterDatabase characterDatabase;
     [SerializeField] private GameObject playerPrefab;
 
     [Header("Auto Settings")]
@@ -26,29 +25,10 @@ public class GameManager : NetworkBehaviour
 
     public static GameManager Instance { get; private set; }
 
-    public NetworkList<PlayerData> players;
     public GameState GameState
     {
         get { return gameState; }
         set { gameState = value; }
-    }
-
-
-    public CharacterDatabase CharacterDatabase => characterDatabase;
-
-    public override void OnNetworkSpawn()
-    {
-        if (IsHost)
-        {
-            players.OnListChanged += HandlePlayersStateChanged;
-        }
-    }
-    public override void OnNetworkDespawn()
-    {
-        if (IsHost)
-        {
-            players.OnListChanged -= HandlePlayersStateChanged;
-        }
     }
 
     private void Awake()
@@ -60,7 +40,6 @@ public class GameManager : NetworkBehaviour
     public async void StartHost()
     {
         loadingScreen.gameObject.SetActive(true);
-        players = new NetworkList<PlayerData>();
         await ServerManager.Instance.StartHost();
         StartGame();
     }
@@ -68,30 +47,12 @@ public class GameManager : NetworkBehaviour
     public Task<bool> StartClient(string joinCode)
     {
         loadingScreen.gameObject.SetActive(true);
-        players = new NetworkList<PlayerData>();
         return ServerManager.Instance.StartClient(joinCode);
     }
 
     public void StartGame()
     {
         NetworkManager.Singleton.SceneManager.LoadScene(gameScene, LoadSceneMode.Single);
-    }
-
-    public void AddPlayer(ulong clientId)
-    {
-        players.Add(new PlayerData(clientId));
-    }
-
-    public void RemovePlayer(ulong clientId)
-    {
-        for (int i = 0; i < players.Count; i++)
-        {
-            if (players[i].clientId == clientId)
-            {
-                players.RemoveAt(i);
-                break;
-            }
-        }
     }
 
     public void SetCamera(PlayerFollowCamera playerFollowCamera)
@@ -147,70 +108,6 @@ public class GameManager : NetworkBehaviour
         else
         {
             return false;
-        }
-    }
-
-
-
-    public int GetPlayerIndex(ulong clientId)
-    {
-        for (int i = 0; i < players.Count; i++)
-        {
-            PlayerData player = players[i];
-
-            if (player.clientId != clientId) { continue; }
-
-            return i;
-        }
-        return -1;
-    }
-
-    public PlayerData GetPlayer(ulong clientId)
-    {
-        for (int i = 0; i < players.Count; i++)
-        {
-            PlayerData player = players[i];
-
-            if (player.clientId != clientId) { continue; }
-
-            return player;
-        }
-        return new PlayerData();
-    }
-
-    public void UpdateCharacter(int characterId)
-    {
-        UpdateCharacterServerRpc(characterId);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    public void UpdateCharacterServerRpc(int characterId, ServerRpcParams serverPrcParams = default)
-    {
-        NetworkManager.Singleton.ConnectedClients.TryGetValue(serverPrcParams.Receive.SenderClientId, out NetworkClient client);
-        client.PlayerObject.GetComponent<PlayerCharacter>().UpdateCharacter(characterId);
-    }
-
-    private void HandlePlayersStateChanged(NetworkListEvent<PlayerData> changeEvent)
-    {
-        switch (changeEvent.Type)
-        {
-            case NetworkListEvent<PlayerData>.EventType.Add:
-                Debug.Log($"Player added: {changeEvent.Value.clientId}");
-
-                // 일단 여기에 다 묶여 있는데, 나중에 세이브 시스템 해보고 필요없으면 다 없애버릴거임.
-                GameObject playerInstance = Instantiate(playerPrefab);
-                playerInstance.GetComponent<NetworkObject>().SpawnAsPlayerObject(players[changeEvent.Index].clientId);
-                break;
-
-            case NetworkListEvent<PlayerData>.EventType.Remove:
-                Debug.Log($"Player removed: {changeEvent.Index}");
-
-                break;
-
-            case NetworkListEvent<PlayerData>.EventType.Value:
-
-                // Debug.Log($"Player data changed at {changeEvent.Index}: Character ID = {changeEvent.Value.characterId}");
-                break;
         }
     }
 }

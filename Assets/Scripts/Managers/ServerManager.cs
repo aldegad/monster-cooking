@@ -33,12 +33,6 @@ public class ServerManager : NetworkBehaviour
         // 연결 승인 처리
         NetworkManager.Singleton.ConnectionApprovalCallback -= ApprovalCallback;
         NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCallback;
-        // 플레이어 들어오면 캐릭터 씬 이동 후 캐릭터 생성
-        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
-        // 디스 커넥트 이벤트 추가
-        NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnect;
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
 
         string joinCode = await StartHostWithRelay();
         Debug.Log($"Host Joined: {joinCode}");
@@ -97,7 +91,7 @@ public class ServerManager : NetworkBehaviour
 
     private void ApprovalCallback(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
     {
-        if (GameManager.Instance.players.Count >= 4)
+        if (NetworkManager.Singleton.ConnectedClients.Count >= 4)
         {
             // 4명이상은 연결 거부
             response.Approved = false;
@@ -106,17 +100,8 @@ public class ServerManager : NetworkBehaviour
 
         // 연결 승인
         response.Approved = true;
-        response.CreatePlayerObject = false;
+        response.CreatePlayerObject = true;
         response.Pending = false;
-    }
-    private void OnClientConnected(ulong clientId)
-    {
-        GameManager.Instance.AddPlayer(clientId);
-    }
-
-    private void OnClientDisconnect(ulong clientId)
-    {
-        GameManager.Instance.RemovePlayer(clientId);
     }
 
     private async Task<string> StartHostWithRelay(int maxConnections = 5)

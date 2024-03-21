@@ -7,6 +7,7 @@ using Unity.Netcode;
 
 public class PlayerMovement : NetworkBehaviour
 {
+    [Header("Spawn Point")]
     [SerializeField] private Vector3 spawnPoint;
 
     [Header("Movement")]
@@ -20,7 +21,6 @@ public class PlayerMovement : NetworkBehaviour
     private PlayerBase playerBase;
     private Rigidbody rigid;
 
-    private bool isNetworkSpawned = false;
     private bool isInitialized = false;
 
     private Vector3 moveDirection;
@@ -36,13 +36,10 @@ public class PlayerMovement : NetworkBehaviour
         speed = runSpeed;
     }
 
-    public override void OnNetworkSpawn()
-    {
-        isNetworkSpawned = true;
-    }
-
     private void Update()
     {
+        if (SceneManager.GetActiveScene().name != "GameScene") { return; }
+
         if (!IsOwner) { return; }
         initializePosition();
 
@@ -52,6 +49,8 @@ public class PlayerMovement : NetworkBehaviour
     }
     private void FixedUpdate()
     {
+        if (SceneManager.GetActiveScene().name != "GameScene") { return; }
+
         if (!IsOwner) { return; }
         if (!isInitialized) { return; }
 
@@ -61,33 +60,13 @@ public class PlayerMovement : NetworkBehaviour
     private void initializePosition()
     {
         if (isInitialized) { return; }
-        if (SceneManager.GetActiveScene().name == "GameScene" && isNetworkSpawned)
-        {
-            initializePositionServerRpc();
-        }
+        initializePositionServerRpc();
     }
 
     [ServerRpc(RequireOwnership = false)]
     private void initializePositionServerRpc()
     {
-        int playerIndex = GameManager.Instance.GetPlayerIndex(OwnerClientId);
-
-        if (playerIndex == -1) { return; }
-
-        Vector3 position;
-
-        if (GameManager.Instance.players[playerIndex].position != Vector3.zero)
-        {
-            position = GameManager.Instance.players[playerIndex].position;
-        }
-        else
-        {
-            position = spawnPoint;
-        }
-
-        rigid.MovePosition(position);
-        GameManager.Instance.players[playerIndex] = PlayerData.SetPosition(playerIndex, position);
-
+        transform.position = spawnPoint;
         initializePositionClientRpc();
     }
     
@@ -152,9 +131,5 @@ public class PlayerMovement : NetworkBehaviour
         {
             jumpable = true;
         }
-
-        // ¿˙¿Â
-        int playerIndex = GameManager.Instance.GetPlayerIndex(OwnerClientId);
-        GameManager.Instance.players[playerIndex] = PlayerData.SetPosition(playerIndex, position);
     }
 }

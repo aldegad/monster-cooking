@@ -44,7 +44,7 @@ public class BuildingManager : NetworkBehaviour
 
     private ulong localClientId;
     private Dictionary<ulong, BuildingClientData> buildingClientDatas = new Dictionary<ulong, BuildingClientData>();
-    private bool isNetworkSpawn;
+    private bool isInitialized = false;
 
     public static BuildingManager Instance { get; private set; }
     public List<BuildableGroup> BuildableGroups => buildableGroups;
@@ -86,7 +86,7 @@ public class BuildingManager : NetworkBehaviour
         buildingClientDatas[senderClientId] = new BuildingClientData();
         if (localClientId == senderClientId) 
         {
-            isNetworkSpawn = true;
+            isInitialized = true;
         }
     }
 
@@ -98,7 +98,7 @@ public class BuildingManager : NetworkBehaviour
 
     private void Update()
     {
-        if (!isNetworkSpawn) { return; }
+        if (!isInitialized) { return; }
 
         // 어차피 얘는 오너거 하나밖에 없음. 플레이어 오브젝트와 달리 각자 하나씩 가지고 있음.
         if (Input.GetKeyDown(KeyCode.B))
