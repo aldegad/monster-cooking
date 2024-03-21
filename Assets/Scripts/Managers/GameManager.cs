@@ -113,7 +113,44 @@ public class GameManager : NetworkBehaviour
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
-    
+
+    public float Input_GetAxis_Player(string axisName)
+    {
+        if (GameState == GameState.Exploration || GameState == GameState.Building)
+        {
+            return Input.GetAxis(axisName);
+        }
+        else
+        {
+            return 0f;
+        }
+    }
+
+    public bool Input_GetButton_Player(string buttonName)
+    {
+        if (GameState == GameState.Exploration || GameState == GameState.Building)
+        {
+            return Input.GetButton(buttonName);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public bool Input_GetKeyDown_Player(KeyCode keyCode)
+    {
+        if (GameState == GameState.Exploration || GameState == GameState.Building)
+        {
+            return Input.GetKeyDown(keyCode);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+
 
     public int GetPlayerIndex(ulong clientId)
     {
@@ -160,6 +197,7 @@ public class GameManager : NetworkBehaviour
             case NetworkListEvent<PlayerData>.EventType.Add:
                 Debug.Log($"Player added: {changeEvent.Value.clientId}");
 
+                // 일단 여기에 다 묶여 있는데, 나중에 세이브 시스템 해보고 필요없으면 다 없애버릴거임.
                 GameObject playerInstance = Instantiate(playerPrefab);
                 playerInstance.GetComponent<NetworkObject>().SpawnAsPlayerObject(players[changeEvent.Index].clientId);
                 break;

@@ -8,9 +8,10 @@ public class PlayerCharacter : NetworkBehaviour
 
     [SerializeField] private GameObject characterContainer;
 
-    [HideInInspector] public GameObject character;
-    [HideInInspector] public Animator animator;
-    [HideInInspector] public PlayerBoots[] boots;
+    [SerializeField] public GameObject character;
+    [SerializeField] public Animator animator;
+    [SerializeField] public PlayerBoots[] boots;
+
     public override void OnNetworkSpawn()
     {
         InitializeCharacter();

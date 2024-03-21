@@ -100,8 +100,8 @@ public class PlayerMovement : NetworkBehaviour
 
     private void UpdateMoveDirection()
     {
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+        float horizontal = GameManager.Instance.Input_GetAxis_Player("Horizontal");
+        float vertical = GameManager.Instance.Input_GetAxis_Player("Vertical");
 
         Vector3 cameraForward = new Vector3(Camera.main.transform.forward.x, 0f, Camera.main.transform.forward.z);
         Vector3 cameraRight = new Vector3(Camera.main.transform.right.x, 0f, Camera.main.transform.right.z);

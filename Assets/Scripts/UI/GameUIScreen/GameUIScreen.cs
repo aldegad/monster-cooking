@@ -7,23 +7,22 @@ public class GameUIScreen : MonoBehaviour
 {
     [SerializeField] GameMenu gameMenu;
 
-    private GameState prevGameState;
-
     private void Update()
     {
-        if (Input.GetButtonDown("Cancel"))
+        if (Input.GetKeyDown(KeyCode.F1) || Input.GetKeyDown(KeyCode.Escape))
         {
             if (gameMenu.gameObject.activeSelf)
             {
-                gameMenu.gameObject.SetActive(false);
                 GameManager.Instance.ResumeCamera();
                 GameManager.Instance.GameState = GameState.Exploration;
+                gameMenu.gameObject.SetActive(false);
             }
             else if(GameManager.Instance.GameState == GameState.Exploration)
             {
-                gameMenu.gameObject.SetActive(true);
+                
                 GameManager.Instance.PauseCamera();
                 GameManager.Instance.GameState = GameState.Menu;
+                gameMenu.gameObject.SetActive(true);
             }
         }
     }

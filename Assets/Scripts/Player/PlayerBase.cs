@@ -81,7 +81,7 @@ public class PlayerBase : NetworkBehaviour
 
     private void UpdateState()
     {
-        if (GameManager.Instance.GameState == GameState.Exploration && Input.GetButton("Horizontal") || Input.GetButton("Vertical"))
+        if (GameManager.Instance.Input_GetButton_Player("Horizontal") || GameManager.Instance.Input_GetButton_Player("Vertical"))
         {
             if (Input.GetKey(KeyCode.LeftShift))
             {
@@ -100,7 +100,7 @@ public class PlayerBase : NetworkBehaviour
             isSprint = false;
         }
 
-        if (GameManager.Instance.GameState == GameState.Exploration && Input.GetKeyDown(KeyCode.C))
+        if (GameManager.Instance.Input_GetKeyDown_Player(KeyCode.C))
         {
             isCrouch = !isCrouch;
         }
@@ -143,7 +143,7 @@ public class PlayerBase : NetworkBehaviour
             remainJumpDelayTime -= Time.deltaTime;
         }
 
-        if (GameManager.Instance.GameState == GameState.Exploration && Input.GetButtonDown("Jump") && isGround && remainJumpDelayTime <= 0f)
+        if (GameManager.Instance.Input_GetButton_Player("Jump") && isGround && remainJumpDelayTime <= 0f)
         {
             isJump = true;
         }
