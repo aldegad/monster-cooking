@@ -6,7 +6,6 @@ using UnityEngine.EventSystems;
 
 public class BuildableObjectButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [SerializeField] private BuildingManager buildingManager;
     [SerializeField] private BuildableObject buildableObject;
     [SerializeField] private int buildableGroupIndex;
     [SerializeField] private int buildableIndex;
@@ -16,9 +15,8 @@ public class BuildableObjectButton : MonoBehaviour, IPointerEnterHandler, IPoint
         gameObject.GetComponent<Button>().onClick.AddListener(OnClick);
     }
 
-    public void SetFields(BuildingManager buildingManager, BuildableObject buildableObject, int buildableGroupIndex, int buildableIndex)
+    public void SetFields(BuildableObject buildableObject, int buildableGroupIndex, int buildableIndex)
     { 
-        this.buildingManager = buildingManager;
         this.buildableObject = buildableObject;
         this.buildableGroupIndex = buildableGroupIndex;
         this.buildableIndex = buildableIndex;
@@ -39,7 +37,7 @@ public class BuildableObjectButton : MonoBehaviour, IPointerEnterHandler, IPoint
     }
     private void OnClick()
     {
-        buildingManager.changeBuildingTypeButton(buildableObject.buildType);
-        buildingManager.startBuildingButton(buildableGroupIndex, buildableIndex);
+        BuildingManager.Instance.ChangeBuildingTypeButton(buildableObject.buildType);
+        BuildingManager.Instance.StartBuildingButton(buildableGroupIndex, buildableIndex);
     }
 }

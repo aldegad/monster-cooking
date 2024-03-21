@@ -6,7 +6,6 @@ using TMPro;
 
 public class BuildableTab : MonoBehaviour
 {
-    [SerializeField] private BuildingManager buildingManager;
     [SerializeField] private int groupIndex;
     [SerializeField] private string displayName;
 
@@ -15,9 +14,8 @@ public class BuildableTab : MonoBehaviour
         gameObject.GetComponent<Button>().onClick.AddListener(OnClick);
     }
 
-    public void SetFields(BuildingManager buildingManager, int groupIndex, string displayName)
+    public void SetFields(int groupIndex, string displayName)
     { 
-        this.buildingManager = buildingManager;
         this.groupIndex = groupIndex;
         this.displayName = displayName;
 
@@ -42,6 +40,6 @@ public class BuildableTab : MonoBehaviour
 
     private void OnClick()
     {
-        buildingManager.changeBuildableGroup(groupIndex);
+        BuildingManager.Instance.BuildingUI.ChangeBuildableGroup(groupIndex);
     }
 }

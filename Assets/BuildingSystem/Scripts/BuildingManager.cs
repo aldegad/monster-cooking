@@ -5,18 +5,21 @@ using UnityEngine;
 using TMPro;
 using Cinemachine;
 using UnityEngine.UI;
+using System.Linq;
 
 public class BuildingManager : MonoBehaviour
 {
     [Header("Build Objects")]
-    [SerializeField] private GameObject floorModule;
-    [SerializeField] private GameObject wallModule;
+    [SerializeField] private BuildableModule floorModule;
+    [SerializeField] private BuildableModule wallModule;
     [SerializeField] private List<BuildableGroup> buildableGroups = new List<BuildableGroup>();
 
     [Header("Build Settings")]
     [SerializeField] private LayerMask buildableLayers;
     [SerializeField] private BuildType currentBuildType;
+    [SerializeField] private LayerMask buildingLayer;
     [SerializeField] private LayerMask connectorLayer;
+    [SerializeField] private BuildingUI buildingUI;
 
     [Header("Destroy Settings")]
     [SerializeField] private bool isDestroying = false;
@@ -27,59 +30,26 @@ public class BuildingManager : MonoBehaviour
     [Header("Ghost Settings")]
     [SerializeField] private Material ghostMaterialValid;
     [SerializeField] private Material ghostMaterialInvalid;
-    [SerializeField] private float connectorOverlapRadius = 1f;
     [SerializeField] private float maxGroundAngle = 45f;
 
     [Header("Internal State")]
     [SerializeField] private bool isBuilding = false;
+    [SerializeField] private float currentGroundAngle;
     [SerializeField] private int currentBuildableGroupIndex;
     [SerializeField] private int currentBuildableIndex;
 
-    [Header("Building UI")]
-    [SerializeField] private GameObject buildingUI;
-    [SerializeField] private GameObject buildableTabGroup;
-    [SerializeField] private BuildableTab buildableTab;
-    [SerializeField] private GameObject buildableObjectContainer;
-    [SerializeField] private GameObject buildableObjectGrid;
-    [SerializeField] private BuildableObjectButton buildableObjectButton;
 
-    private List<BuildableTab> buildableTabInstances = new List<BuildableTab>();
-    private List<GameObject> buildableObjectGridInstances = new List<GameObject>();
+    private BuildableModule ghostBuildableModule;
+    private bool isGhostValidPosition = false;
 
-    private GameObject ghostBuildGameObject;
-    private bool isGhostInvalidPosition = false;
-    private Transform ModelParent = null;
+    public static BuildingManager Instance { get; private set; }
+    public List<BuildableGroup> BuildableGroups => buildableGroups;
+    public BuildingUI BuildingUI => buildingUI;
 
-    private void Start()
+    private void Awake()
     {
         DontDestroyOnLoad(gameObject);
-        buildingUI.gameObject.SetActive(false);
-
-        for (int i = 0; i < buildableGroups.Count; i++)
-        {
-            BuildableGroup buildableGroup = buildableGroups[i];
-            // set tabs
-            BuildableTab buildableTabInstance = Instantiate(buildableTab, buildableTabGroup.transform);
-            buildableTabInstances.Add(buildableTabInstance);
-
-            buildableTabInstance.SetFields(this, i, buildableGroup.buildableGroupName);
-            if(i == 0) buildableTabInstance.Actiavate(true);
-            else buildableTabInstance.Actiavate(false);
-
-            // set tab grids
-            GameObject buildableObjectGridInstance = Instantiate(buildableObjectGrid, buildableObjectContainer.transform);
-            if (i != 0) buildableObjectGridInstance.SetActive(false);
-            buildableObjectGridInstances.Add(buildableObjectGridInstance);
-
-            for (int j = 0; j < buildableGroup.buildableObjects.Count; j++)
-            {
-                BuildableObject buildableObject = buildableGroup.buildableObjects[j];
-
-                BuildableObjectButton buildableObjectButtonInstance = Instantiate(buildableObjectButton, buildableObjectGridInstance.transform);
-
-                buildableObjectButtonInstance.SetFields(this, buildableObject, i, j);
-            }
-        }
+        Instance = this;
     }
 
     private void Update()
@@ -106,13 +76,7 @@ public class BuildingManager : MonoBehaviour
             }
         }
 
-        if (!isBuilding && ghostBuildGameObject)
-        { 
-            Destroy(ghostBuildGameObject);
-            ghostBuildGameObject = null;
-        }
-
-        if (buildingUI.gameObject.activeSelf)
+        if (GameManager.Instance.GameState == GameState.BuildingUI)
         {
             if (Input.GetKeyDown(KeyCode.C))
             {
@@ -131,6 +95,11 @@ public class BuildingManager : MonoBehaviour
             }
         }
 
+        if (!isBuilding && !isDestroying && ghostBuildableModule != null)
+        {
+            Destroy(ghostBuildableModule.gameObject);
+        }
+
         if (!isDestroying && lastHitDestroyTransform)
         {
             resetLastDestroyTransform();
@@ -138,6 +107,7 @@ public class BuildingManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            isBuilding = false;
             toggleBuildingUI(false);
             destroyBuildingToggle(false);
         }
@@ -145,9 +115,9 @@ public class BuildingManager : MonoBehaviour
 
     private void ghostBuild()
     {
-        if (ghostBuildGameObject == null)
+        if (ghostBuildableModule == null)
         {
-            GameObject currentBuild = getCurrentBuild(transform);
+            BuildableModule currentBuild = getCurrentBuild(transform);
             createGhostPrefab(currentBuild);
         }
 
@@ -155,14 +125,12 @@ public class BuildingManager : MonoBehaviour
         checkBuildValidity();
     }
 
-    private void createGhostPrefab(GameObject currentBuild)
+    private void createGhostPrefab(BuildableModule currentBuild)
     {
-        ghostBuildGameObject = currentBuild;
+        ghostBuildableModule = currentBuild;
 
-        ModelParent = ghostBuildGameObject.transform.GetChild(0);
-
-        ghostifyModel(ModelParent, ghostMaterialValid);
-        ghostifyModel(ghostBuildGameObject.transform);
+        ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialValid);
+        ghostifyModel(ghostBuildableModule.ModelParent);
     }
 
     private void moveGhostPrefabToRaycast()
@@ -174,52 +142,94 @@ public class BuildingManager : MonoBehaviour
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, buildableLayers))
         {
             // 레이캐스트가 어떤 오브젝트에 맞았다면, 'ghostBuildGameObject'의 위치를 맞은 지점으로 이동시킵니다.
-            ghostBuildGameObject.transform.position = hit.point;
+            ghostBuildableModule.transform.position = hit.point;
         }
     }
+
     void OnDrawGizmos()
     {
-        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-        RaycastHit hit;
+        if (ghostBuildableModule != null)
+        {
+            // 전체 모듈의 경계를 계산합니다.
+            Bounds bounds = CalculateTotalBounds(ghostBuildableModule.ModelParent);
 
-        if (Physics.Raycast(ray, out hit))
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(ray.origin, hit.point);
-        }
-        else
-        {
+            Collider[] colliders = Physics.OverlapBox(bounds.center, bounds.extents, ghostBuildableModule.transform.rotation, connectorLayer);
+            Collider[] newColliders = RemoveMyConnector(ghostBuildableModule, colliders);
+
+            // 원의 색상 설정
             Gizmos.color = Color.red;
-            Gizmos.DrawLine(ray.origin, ray.origin + ray.direction * 100);
+
+            foreach (Collider collider in newColliders)
+            {
+                SphereCollider sphereCollider = collider as SphereCollider;
+                // SphereCollider의 월드 스케일을 고려한 실제 반지름을 계산합니다.
+                float scaledRadius = sphereCollider.radius * sphereCollider.transform.lossyScale.x;
+
+                // Gizmos를 SphereCollider의 실제 크기에 맞춰 그립니다.
+                Gizmos.DrawWireSphere(collider.transform.position, scaledRadius);
+            }
+
+            // Gizmos를 그릴 때 사용할 색상 설정
+            Gizmos.color = Color.green;
+
+            // Gizmos의 매트릭스를 오브젝트의 월드 위치와 회전으로 설정합니다.
+            Matrix4x4 rotationMatrix = Matrix4x4.TRS(bounds.center, ghostBuildableModule.transform.rotation, Vector3.one);
+            Gizmos.matrix = rotationMatrix;
+
+            // 계산된 전체 경계를 기반으로 와이어프레임 상자를 그립니다.
+            Gizmos.DrawWireCube(Vector3.zero, bounds.size);
         }
     }
 
     private void checkBuildValidity()
     {
-        Collider[] colliders = Physics.OverlapSphere(ghostBuildGameObject.transform.position, connectorOverlapRadius, connectorLayer);
+        Bounds bounds = CalculateTotalBounds(ghostBuildableModule.ModelParent);
 
-        if (colliders.Length > 0)
+        Collider[] colliders = Physics.OverlapBox(bounds.center, bounds.extents, ghostBuildableModule.transform.rotation, connectorLayer);
+
+        Collider[] newColliders = RemoveMyConnector(ghostBuildableModule, colliders);
+        if (newColliders.Length > 0)
         {
-            ghostConnectBuild(colliders);
+            ghostConnectBuild(newColliders);
         }
         else
         {
             ghostSeperateBuild();
 
-            if (isGhostInvalidPosition)
+            if (isGhostValidPosition)
             {
-                Collider[] overlapColliders = Physics.OverlapBox(ghostBuildGameObject.transform.position, new Vector3(2f, 2f, 2f), ghostBuildGameObject.transform.rotation);
+                Collider[] overlapColliders = Physics.OverlapBox(bounds.center, bounds.extents, ghostBuildableModule.transform.rotation, buildingLayer);
                 foreach (Collider overapCollider in overlapColliders)
                 {
-                    if (overapCollider.gameObject != ghostBuildGameObject && overapCollider.transform.root.CompareTag("Buildables"))
+                    if (overapCollider.transform.root.gameObject != ghostBuildableModule.gameObject && overapCollider.transform.root.CompareTag("Buildables"))
                     {
-                        ghostifyModel(ModelParent, ghostMaterialInvalid);
-                        isGhostInvalidPosition = false;
+                        ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialInvalid);
+                        isGhostValidPosition = false;
                         return;
                     }
                 }
             }
         }
+    }
+    private Bounds CalculateTotalBounds(GameObject modalParent)
+    {
+        Renderer[] renderers = modalParent.GetComponentsInChildren<Renderer>();
+
+        Bounds bounds = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
+        {
+            bounds.Encapsulate(renderers[i].bounds);
+        }
+
+        return bounds;
+    }
+
+    private Collider[] RemoveMyConnector(BuildableModule ghostBuildGameObject, Collider[] colliders)
+    {
+        Connector[] myConnectors = ghostBuildGameObject.transform.GetChild(1).GetComponentsInChildren<Connector>();
+        Collider[] myConnectorColliders = myConnectors.Select(connector => connector.GetComponent<Collider>()).ToArray();
+
+        return colliders.Where(collider => !myConnectorColliders.Contains(collider)).ToArray();
     }
 
     private void ghostConnectBuild(Collider[] colliders)
@@ -227,13 +237,14 @@ public class BuildingManager : MonoBehaviour
         Connector bestConnector = null;
 
         foreach (Collider collider in colliders)
-        { 
+        {
             Connector connector = collider.GetComponent<Connector>();
+
+            
 
             if (connector.canConnectedTo)
             {
                 bestConnector = connector;
-                break;
             }
         }
 
@@ -241,8 +252,8 @@ public class BuildingManager : MonoBehaviour
             currentBuildType == BuildType.floor && bestConnector.isConnectedToFloor ||
             currentBuildType == BuildType.wall && bestConnector.isConnectedToWall)
         {
-            ghostifyModel(ModelParent, ghostMaterialInvalid);
-            isGhostInvalidPosition = false;
+            ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialInvalid);
+            isGhostValidPosition = false;
             return;
         }
 
@@ -251,18 +262,18 @@ public class BuildingManager : MonoBehaviour
 
     private void snapGhostPrefabToConnector(Connector connector)
     {
-        Transform ghostConnector = findSnapConnector(connector.transform, ghostBuildGameObject.transform.GetChild(1));
-        ghostBuildGameObject.transform.position = connector.transform.position - (ghostConnector.position - ghostBuildGameObject.transform.position);
+        Transform ghostConnector = findSnapConnector(connector.transform, ghostBuildableModule.transform.GetChild(1));
+        ghostBuildableModule.transform.position = connector.transform.position - (ghostConnector.position - ghostBuildableModule.transform.position);
 
         if (currentBuildType == BuildType.wall)
         {
-            Quaternion newRotation = ghostBuildGameObject.transform.rotation;
+            Quaternion newRotation = ghostBuildableModule.transform.rotation;
             newRotation.eulerAngles = new Vector3(newRotation.eulerAngles.x, connector.transform.rotation.eulerAngles.y, newRotation.eulerAngles.z);
-            ghostBuildGameObject.transform.rotation = newRotation;
+            ghostBuildableModule.transform.rotation = newRotation;
         }
 
-        ghostifyModel(ModelParent, ghostMaterialValid);
-        isGhostInvalidPosition = true;
+        ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialValid);
+        isGhostValidPosition = true;
     }
 
     private void ghostSeperateBuild()
@@ -274,20 +285,21 @@ public class BuildingManager : MonoBehaviour
         {
             if(currentBuildType == BuildType.wall)
             {
-                ghostifyModel(ModelParent, ghostMaterialInvalid);
-                isGhostInvalidPosition = false;
+                ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialInvalid);
+                isGhostValidPosition = false;
                 return;
             }
 
-            if (Vector3.Angle(hit.normal, Vector3.up) < maxGroundAngle)
+            currentGroundAngle = Vector3.Angle(hit.normal, Vector3.up);
+            if (currentGroundAngle < maxGroundAngle)
             {
-                ghostifyModel(ModelParent, ghostMaterialValid);
-                isGhostInvalidPosition = true;
+                ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialValid);
+                isGhostValidPosition = true;
             }
             else
             {
-                ghostifyModel(ModelParent, ghostMaterialInvalid);
-                isGhostInvalidPosition = false;
+                ghostifyModel(ghostBuildableModule.ModelParent, ghostMaterialInvalid);
+                isGhostValidPosition = false;
             }
         }
     }
@@ -311,11 +323,6 @@ public class BuildingManager : MonoBehaviour
     private ConnectorPosition getOppositePosition(Connector connector)
     {
         ConnectorPosition position = connector.connectorPosition;
-
-        /*if (currentBuildType == BuildType.wall && connector.connectorParentType == BuildType.wall)
-        {
-            return ConnectorPosition.bottom;
-        }*/
 
         if (currentBuildType == BuildType.wall && connector.connectorParentType == BuildType.floor)
         {
@@ -358,15 +365,15 @@ public class BuildingManager : MonoBehaviour
 
         if (topBottom)
         {
-            return cameraTransform.position.z >= ghostBuildGameObject.transform.position.z ? ConnectorPosition.bottom : ConnectorPosition.top;
+            return cameraTransform.position.z >= ghostBuildableModule.transform.position.z ? ConnectorPosition.bottom : ConnectorPosition.top;
         }
         else
         {
-            return cameraTransform.position.x >= ghostBuildGameObject.transform.position.x ? ConnectorPosition.left : ConnectorPosition.right;
+            return cameraTransform.position.x >= ghostBuildableModule.transform.position.x ? ConnectorPosition.left : ConnectorPosition.right;
         }
     }
 
-    private void ghostifyModel(Transform modelParent, Material ghostMaterial = null)
+    private void ghostifyModel(GameObject modelParent, Material ghostMaterial = null)
     {
         if (ghostMaterial != null)
         {
@@ -389,25 +396,23 @@ public class BuildingManager : MonoBehaviour
         }
     }
 
-    private GameObject getCurrentBuild(Transform transform = null)
+    private BuildableModule getCurrentBuild(Transform transform)
     {
         BuildableObject buildableObject = buildableGroups[currentBuildableGroupIndex].buildableObjects[currentBuildableIndex];
         buildableObject.buildableObject.layer = LayerMask.NameToLayer("Building");
         switch (currentBuildType)
         {
             case BuildType.floor:
-                GameObject floorInstance = Instantiate(floorModule, transform.position, transform.rotation);
-                Transform floorModelParent = floorInstance.transform.GetChild(0);
-                floorInstance.name = buildableObject.name;
-                Instantiate(buildableObject.buildableObject, floorModelParent.transform);
+                BuildableModule floorInstance = Instantiate(floorModule, transform.position, transform.rotation);
+                floorInstance.gameObject.name = buildableObject.name;
+                Instantiate(buildableObject.buildableObject, floorInstance.ModelParent.transform);
 
                 return floorInstance;
 
             case BuildType.wall:
-                GameObject wallInstance = Instantiate(wallModule, transform.position, transform.rotation);
-                Transform wallModelParent = wallInstance.transform.GetChild(0);
-                wallInstance.name = buildableObject.name;
-                Instantiate(buildableObject.buildableObject, wallModelParent.transform);
+                BuildableModule wallInstance = Instantiate(wallModule, transform.position, transform.rotation);
+                wallInstance.gameObject.name = buildableObject.name;
+                Instantiate(buildableObject.buildableObject, wallInstance.ModelParent.transform);
 
                 return wallInstance;
         }
@@ -417,12 +422,17 @@ public class BuildingManager : MonoBehaviour
 
     private void placeBuild()
     { 
-        if(ghostBuildGameObject != null && isGhostInvalidPosition)
+        if(ghostBuildableModule != null && isGhostValidPosition)
         {
-            GameObject newBuild = getCurrentBuild(ghostBuildGameObject.transform);
+            foreach (Connector connector in ghostBuildableModule.GetComponentsInChildren<Connector>())
+            {
+                connector.gameObject.SetActive(false);
+            }
 
-            Destroy(ghostBuildGameObject);
-            ghostBuildGameObject = null;
+            BuildableModule newBuild = getCurrentBuild(ghostBuildableModule.transform);
+
+            Destroy(ghostBuildableModule.gameObject);
+            ghostBuildableModule = null;
 
             foreach (Connector connector in newBuild.GetComponentsInChildren<Connector>())
             { 
@@ -450,7 +460,7 @@ public class BuildingManager : MonoBehaviour
                         LastHitMaterials.Add(lastHitMeshRenderers.materials);
                     }
 
-                    ghostifyModel(lastHitDestroyTransform.GetChild(0), ghostMaterialInvalid);
+                    ghostifyModel(lastHitDestroyTransform.GetComponent<BuildableModule>().ModelParent, ghostMaterialInvalid);
                 }
                 else if (hit.transform.root != lastHitDestroyTransform)
                 {
@@ -530,12 +540,12 @@ public class BuildingManager : MonoBehaviour
         toggleBuildingUI(false);
     }
 
-    public void changeBuildingTypeButton(BuildType selectedBuildType)
+    public void ChangeBuildingTypeButton(BuildType selectedBuildType)
     {
         currentBuildType = selectedBuildType;
     }
 
-    public void startBuildingButton(int buildableGroupIndex, int buildableIndex)
+    public void StartBuildingButton(int buildableGroupIndex, int buildableIndex)
     {
         GameManager.Instance.GameState = GameState.Building;
         currentBuildableGroupIndex = buildableGroupIndex;
@@ -543,33 +553,6 @@ public class BuildingManager : MonoBehaviour
 
         isBuilding = true;
         toggleBuildingUI(false);
-    }
-
-    public void changeBuildableGroup(int buildableGroupIndex)
-    {
-        currentBuildableGroupIndex = buildableGroupIndex;
-
-        // change tab
-        buildableTabInstances[currentBuildableGroupIndex].Actiavate(true);
-
-        for (int i = 0; i < buildableTabInstances.Count; i++)
-        {
-            if (i != currentBuildableGroupIndex)
-            {
-                buildableTabInstances[i].Actiavate(false);
-            }
-        }
-
-        // change tab container
-        buildableObjectGridInstances[currentBuildableGroupIndex].SetActive(true);
-
-        for (int i = 0; i < buildableObjectGridInstances.Count; i++)
-        {
-            if (i != currentBuildableGroupIndex)
-            {
-                buildableObjectGridInstances[i].SetActive(false);
-            }
-        }
     }
 }
 

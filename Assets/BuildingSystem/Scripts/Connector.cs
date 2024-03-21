@@ -8,9 +8,9 @@ public class Connector : MonoBehaviour
     public ConnectorPosition connectorPosition;
     public BuildType connectorParentType;
 
-    [HideInInspector] public bool isConnectedToFloor = false;
-    [HideInInspector] public bool isConnectedToWall = false;
-    [HideInInspector] public bool canConnectedTo = true;
+    [SerializeField] public bool isConnectedToFloor = false;
+    [SerializeField] public bool isConnectedToWall = false;
+    [SerializeField] public bool canConnectedTo = true;
 
     [SerializeField] private bool canConnectToFloor = true;
     [SerializeField] private bool canConnectToWall = true;
@@ -44,7 +44,7 @@ public class Connector : MonoBehaviour
         Collider myCollider = gameObject.GetComponent<Collider>();
 
         LayerMask maskFromLayer = 1 << gameObject.layer; // 레이어 인덱스를 이용해 LayerMask 생성
-        Collider[] colliders = Physics.OverlapSphere(transform.position, transform.lossyScale.x, maskFromLayer);
+        Collider[] colliders = Physics.OverlapSphere(transform.position, transform.lossyScale.x / 2f, maskFromLayer);
 
         isConnectedToFloor = !canConnectToFloor;
         isConnectedToWall = !canConnectToWall;
