@@ -10,7 +10,7 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] private Vector3 spawnPoint;
 
     [Header("Movement")]
-    [SerializeField] public float gravity = 2f;
+    [SerializeField] public float gravity = 3f;
     [SerializeField] public float runSpeed = 5f;
     [SerializeField] public float sprintSpeed = 8f;
     [SerializeField] public float crouchSpeed = 3f;
