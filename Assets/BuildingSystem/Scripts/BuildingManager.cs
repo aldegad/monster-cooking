@@ -240,8 +240,6 @@ public class BuildingManager : MonoBehaviour
         {
             Connector connector = collider.GetComponent<Connector>();
 
-            
-
             if (connector.canConnectedTo)
             {
                 bestConnector = connector;
