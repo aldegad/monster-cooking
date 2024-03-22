@@ -81,8 +81,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 422cae909a7974141b2d9a6cad568aae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  displayName: 
+  description: 
+  thumbnailImage: {fileID: 0}
+  buildType: 1
   modelParent: {fileID: 5714171114361652238}
   connectorParent: {fileID: 3760486974293933829}
+  _isGhost: 0
 --- !u!1 &5714171114361652238
 GameObject:
   m_ObjectHideFlags: 0

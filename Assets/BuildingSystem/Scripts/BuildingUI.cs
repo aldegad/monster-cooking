@@ -24,7 +24,7 @@ public class BuildingUI : MonoBehaviour
             BuildableTab buildableTabInstance = Instantiate(buildableTab, buildableTabGroup.transform);
             buildableTabInstances.Add(buildableTabInstance);
 
-            buildableTabInstance.SetFields(i, buildableGroup.buildableGroupName);
+            buildableTabInstance.SetFields(i, buildableGroup.groupName);
             if (i == 0) buildableTabInstance.Actiavate(true);
             else buildableTabInstance.Actiavate(false);
 
@@ -33,13 +33,12 @@ public class BuildingUI : MonoBehaviour
             if (i != 0) buildableObjectGridInstance.SetActive(false);
             buildableObjectGridInstances.Add(buildableObjectGridInstance);
 
-            for (int j = 0; j < buildableGroup.buildableObjects.Count; j++)
+            for (int j = 0; j < buildableGroup.buildableModules.Count; j++)
             {
-                BuildableObject buildableObject = buildableGroup.buildableObjects[j];
-
+                BuildableModule buildableModule = buildableGroup.buildableModules[j];
                 BuildableObjectButton buildableObjectButtonInstance = Instantiate(buildableObjectButton, buildableObjectGridInstance.transform);
 
-                buildableObjectButtonInstance.SetFields(buildableObject, i, j);
+                buildableObjectButtonInstance.SetFields(buildableModule, i, j);
             }
         }
     }

@@ -1735,15 +1735,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3064720652
+  GlobalObjectIdHash: 68084929
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
+  SynchronizeTransform: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
+  AutoObjectParentSync: 0
 --- !u!114 &4231453951786201606
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1756,28 +1756,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 705a8725be0aadc43a3cbf2ece914e8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  floorModule: {fileID: 1995697266342526133, guid: ca70a9518f745cf419c5d8a440cc9125, type: 3}
-  wallModule: {fileID: 3409458882693175673, guid: 1ef86efac40033f468966257ef70b588, type: 3}
   buildableGroups:
-  - buildableGroupName: Etcs
-    buildableObjects: []
-  - buildableGroupName: Craftings
-    buildableObjects: []
-  - buildableGroupName: Buildables
-    buildableObjects:
-    - {fileID: 11400000, guid: 146d362aeaf7a4d4a90f642dafb41edb, type: 2}
-    - {fileID: 11400000, guid: f8a01824e6363914cb8b5870003784c3, type: 2}
-    - {fileID: 11400000, guid: af7cf5b77f47317439ea76c2fd3e4c18, type: 2}
-    - {fileID: 11400000, guid: 730906e5c9ddff94eaf6e8f622a5cb00, type: 2}
-    - {fileID: 11400000, guid: 7c0a53b517a646a4eb9b4c4080641264, type: 2}
-    - {fileID: 11400000, guid: 719ffd74a35bafb4f8be4ee99d446d87, type: 2}
-    - {fileID: 11400000, guid: 6ee0f3930fc484c469b90c88cbaf2828, type: 2}
-    - {fileID: 11400000, guid: c8316e42a07d65d4fa020f5b7ce8d40a, type: 2}
-    - {fileID: 11400000, guid: 2a49b242dbf4027448442c350f3ecb55, type: 2}
-    - {fileID: 11400000, guid: 912c08b1152b8244baa3f0120e01bd39, type: 2}
-    - {fileID: 11400000, guid: 545f085b8b52c084c8bf6a6bc69963f1, type: 2}
-  - buildableGroupName: Furnitures
-    buildableObjects: []
+  - groupName: Etcs
+    buildableModules: []
+  - groupName: Craftings
+    buildableModules: []
+  - groupName: Buildables
+    buildableModules:
+    - {fileID: 3781963873457202772, guid: 7f17be957c31caa4f9a4637810cd9330, type: 3}
+    - {fileID: 1235520513347307472, guid: 855390a9e30df4b46b89e351bd24533d, type: 3}
+    - {fileID: 2368615026338802387, guid: 548067dac3e731f42973899cfcd06a66, type: 3}
+    - {fileID: 7862901323546035071, guid: db060047e38ad2c478477329c2385822, type: 3}
+    - {fileID: 4357630075914127333, guid: c6d608cd8d25f3443b38b8e237101400, type: 3}
+    - {fileID: 3111690292217557998, guid: 88718daed95166841aac73c0d68071cd, type: 3}
+    - {fileID: 6714535049732818412, guid: d38d53902ae1def4788e7e790542f7d0, type: 3}
+    - {fileID: 7626459310497570050, guid: 90f6bbd7cfb9abf4fb514ab884a5dd86, type: 3}
+    - {fileID: 3349058726535883482, guid: ae31ed5c87667b448a845f3c70a701af, type: 3}
+    - {fileID: 7497984471421282373, guid: f482039870a10c94b89335b34880807d, type: 3}
+    - {fileID: 8105722228550620472, guid: 740d11a4425d44a4aaf14766b0bb9956, type: 3}
+  - groupName: Furnitures
+    buildableModules: []
   buildableLayers:
     serializedVersion: 2
     m_Bits: 1536
@@ -1794,6 +1792,9 @@ MonoBehaviour:
   ghostMaterialInvalid: {fileID: 2100000, guid: 47e6866fe4727da43aca76e6a41e81a3, type: 2}
   maxGroundAngle: 45
   isBuilding: 0
+  ghostModule: {fileID: 0}
+  isGhostValidPosition: 0
   currentGroundAngle: 0
   currentBuildableGroupIndex: 0
   currentBuildableIndex: 0
+  buildings: []

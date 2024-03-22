@@ -45,10 +45,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 691998318
+  GlobalObjectIdHash: 800399613
   InScenePlacedSourceGlobalObjectIdHash: 800399613
   AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
+  SynchronizeTransform: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
@@ -69,5 +69,6 @@ MonoBehaviour:
   loadingScreen: {fileID: 0}
   mainMenuScene: MainMenuScene
   gameScene: GameScene
-  characterDatabase: {fileID: 11400000, guid: a66111c56629f22439ed933e6b5299ed, type: 2}
   playerPrefab: {fileID: 309720205496557961, guid: 4ae549ff7675ee742905bd51dbcb821f, type: 3}
+  playerFollowCamera: {fileID: 0}
+  gameState: 3

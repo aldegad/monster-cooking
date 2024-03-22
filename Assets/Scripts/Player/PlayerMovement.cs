@@ -60,13 +60,14 @@ public class PlayerMovement : NetworkBehaviour
     private void initializePosition()
     {
         if (isInitialized) { return; }
+
+        transform.position = spawnPoint;
         initializePositionServerRpc();
     }
 
     [ServerRpc(RequireOwnership = false)]
     private void initializePositionServerRpc()
     {
-        transform.position = spawnPoint;
         initializePositionClientRpc();
     }
     
@@ -97,14 +98,6 @@ public class PlayerMovement : NetworkBehaviour
 
     public void UpdatePosition()
     {
-        // 서버에서 업뎃하니까... 플레이 감각이 안좋은데... 흠... 일단 둬보자.
-        // 정 안되면, 다 떼버리고 수동으로 하는 수 밖에.
-        updatePositionServerRpc(moveDirection, speed, playerBase.isJump, playerBase.remainJumpDelayTime);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void updatePositionServerRpc(Vector3 moveDirection, float speed, bool isJump, float remainJumpDelayTime)
-    {
         // 중력
         rigid.AddForce(Vector3.up * -gravity, ForceMode.Impulse);
 
@@ -120,14 +113,14 @@ public class PlayerMovement : NetworkBehaviour
             // 캐릭터의 현재 회전을 목표 회전으로 부드럽게 전환
             rigid.rotation = Quaternion.Slerp(rigid.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
         }
-        
+
         // 점프
-        if (isJump && jumpable)
+        if (playerBase.isJump && jumpable)
         {
             jumpable = false;
             rigid.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
-        if (remainJumpDelayTime < 0f)
+        if (playerBase.remainJumpDelayTime < 0f)
         {
             jumpable = true;
         }

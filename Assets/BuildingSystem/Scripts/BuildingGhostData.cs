@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BuildingClientData
+public class BuildingGhostData
 {
     public BuildableModule ghostModule;
     public bool isBuilding = false;
@@ -13,10 +13,10 @@ public class BuildingClientData
     public Vector3 ghostPosition = Vector3.zero;
     public Quaternion ghostRotation = Quaternion.identity;
 
-    public BuildingClientData() {
+    public BuildingGhostData() {
         
     }
-    public BuildingClientData(bool isBuilding, bool isDestroying, bool isGhostValidPosition, int currentBuildableGroupIndex, int currentBuildableIndex, Vector3 ghostPosition, Quaternion ghostRotation)
+    public BuildingGhostData(bool isBuilding, bool isDestroying, bool isGhostValidPosition, int currentBuildableGroupIndex, int currentBuildableIndex, Vector3 ghostPosition, Quaternion ghostRotation)
     { 
         this.isBuilding = isBuilding;
         this.isDestroying = isDestroying;

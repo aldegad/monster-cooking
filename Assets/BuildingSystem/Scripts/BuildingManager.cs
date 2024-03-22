@@ -11,8 +11,6 @@ using Unity.Netcode;
 public class BuildingManager : NetworkBehaviour
 {
     [Header("Build Objects")]
-    [SerializeField] private BuildableModule floorModule;
-    [SerializeField] private BuildableModule wallModule;
     [SerializeField] private List<BuildableGroup> buildableGroups = new List<BuildableGroup>();
 
     [Header("Build Settings")]
@@ -41,9 +39,11 @@ public class BuildingManager : NetworkBehaviour
     [SerializeField] private int currentBuildableGroupIndex;
     [SerializeField] private int currentBuildableIndex;
 
+    [Header("Buildings")]
+    [SerializeField] private List<BuildableModule> buildings = new List<BuildableModule>();
 
     private ulong localClientId;
-    private Dictionary<ulong, BuildingClientData> buildingClientDatas = new Dictionary<ulong, BuildingClientData>();
+    private Dictionary<ulong, BuildingGhostData> ghostDatas = new Dictionary<ulong, BuildingGhostData>();
     private bool isInitialized = false;
 
     public static BuildingManager Instance { get; private set; }
@@ -67,14 +67,13 @@ public class BuildingManager : NetworkBehaviour
         ulong senderClientId = rpcParams.Receive.SenderClientId;
 
         ClientRpcParams newClientRpcParams = ServerManager.Instance.TargetClient(senderClientId);
-        ClientRpcParams clientRpcParams = ServerManager.Instance.ExceptTargetClient(senderClientId);
 
         // new player
-        foreach (var kvp in buildingClientDatas)
+        foreach (var kvp in ghostDatas)
         {
             ulong clientId = kvp.Key;
-            BuildingClientData ClientData = kvp.Value;
-            SyncDataClientRpc(clientId, ClientData.isBuilding, ClientData.isDestroying, ClientData.isGhostValidPosition, ClientData.currentBuildableGroupIndex, ClientData.currentBuildableIndex, ClientData.ghostPosition, ClientData.ghostRotation, newClientRpcParams);
+            BuildingGhostData ghostData = kvp.Value;
+            SyncDataClientRpc(clientId, ghostData.isBuilding, ghostData.isDestroying, ghostData.isGhostValidPosition, ghostData.currentBuildableGroupIndex, ghostData.currentBuildableIndex, ghostData.ghostPosition, ghostData.ghostRotation, newClientRpcParams);
         }
 
         // all players
@@ -83,7 +82,7 @@ public class BuildingManager : NetworkBehaviour
     [ClientRpc]
     private void AddDataClientRpc(ulong senderClientId)
     {
-        buildingClientDatas[senderClientId] = new BuildingClientData();
+        ghostDatas[senderClientId] = new BuildingGhostData();
         if (localClientId == senderClientId) 
         {
             isInitialized = true;
@@ -93,7 +92,7 @@ public class BuildingManager : NetworkBehaviour
     [ClientRpc]
     private void SyncDataClientRpc(ulong clientId, bool isBuilding, bool isDestroying, bool isGhostValidPosition, int currentBuildableGroupIndex, int currentBuildableIndex, Vector3 ghostPosition, Quaternion ghostRotation, ClientRpcParams _ = default)
     {
-        buildingClientDatas[clientId] = new BuildingClientData(isBuilding, isDestroying, isGhostValidPosition, currentBuildableGroupIndex, currentBuildableIndex, ghostPosition, ghostRotation);
+        ghostDatas[clientId] = new BuildingGhostData(isBuilding, isDestroying, isGhostValidPosition, currentBuildableGroupIndex, currentBuildableIndex, ghostPosition, ghostRotation);
     }
 
     private void Update()
@@ -183,49 +182,53 @@ public class BuildingManager : NetworkBehaviour
     [ClientRpc]
     private void UpdateInternalStateClientRpc(ulong senderClientId, bool isBuilding, bool isDestroying, bool isGhostValidPosition, int currentBuildableGroupIndex, int currentBuildableIndex, Vector3 ghostPosition, Quaternion ghostRotation)
     {
-        if (!buildingClientDatas.ContainsKey(senderClientId)) { return; }
+        if (!ghostDatas.ContainsKey(senderClientId)) { return; }
 
-        bool prevGhostValidPosition = buildingClientDatas[senderClientId].isGhostValidPosition;
-        buildingClientDatas[senderClientId].isBuilding = isBuilding;
-        buildingClientDatas[senderClientId].isDestroying = isDestroying;
-        buildingClientDatas[senderClientId].isGhostValidPosition = isGhostValidPosition;
-        buildingClientDatas[senderClientId].currentBuildableGroupIndex = currentBuildableGroupIndex;
-        buildingClientDatas[senderClientId].currentBuildableIndex = currentBuildableIndex;
-        buildingClientDatas[senderClientId].ghostPosition = ghostPosition;
-        buildingClientDatas[senderClientId].ghostRotation = ghostRotation;
+        bool prevGhostValidPosition = ghostDatas[senderClientId].isGhostValidPosition;
+        ghostDatas[senderClientId].isBuilding = isBuilding;
+        ghostDatas[senderClientId].isDestroying = isDestroying;
+        ghostDatas[senderClientId].isGhostValidPosition = isGhostValidPosition;
+        ghostDatas[senderClientId].currentBuildableGroupIndex = currentBuildableGroupIndex;
+        ghostDatas[senderClientId].currentBuildableIndex = currentBuildableIndex;
+        ghostDatas[senderClientId].ghostPosition = ghostPosition;
+        ghostDatas[senderClientId].ghostRotation = ghostRotation;
 
-        if (localClientId == senderClientId) { return; }
+        if (localClientId == senderClientId) 
+        {
+            ghostDatas[senderClientId].ghostModule = ghostModule;
+            return; 
+        }
 
         if (isBuilding && !isDestroying)
         {
-            if (buildingClientDatas[senderClientId].ghostModule == null)
+            if (ghostDatas[senderClientId].ghostModule == null)
             {
                 BuildableModule currentBuild = getCurrentBuild(transform, currentBuildableGroupIndex, currentBuildableIndex);
-                buildingClientDatas[senderClientId].ghostModule = currentBuild;
-                buildingClientDatas[senderClientId].ghostModule.isGhost = true;
+                ghostDatas[senderClientId].ghostModule = currentBuild;
+                ghostDatas[senderClientId].ghostModule.isGhost = true;
 
                 ghostifyModel(currentBuild.ModelParent, ghostMaterialValid);
                 ghostifyModel(currentBuild.ModelParent);
             }
-            
-            buildingClientDatas[senderClientId].ghostModule.transform.position = ghostPosition;
-            buildingClientDatas[senderClientId].ghostModule.transform.rotation = ghostRotation;
+
+            ghostDatas[senderClientId].ghostModule.transform.position = ghostPosition;
+            ghostDatas[senderClientId].ghostModule.transform.rotation = ghostRotation;
 
             if (prevGhostValidPosition != isGhostValidPosition)
             {
-                ghostifyModel(buildingClientDatas[senderClientId].ghostModule.ModelParent, isGhostValidPosition ? ghostMaterialValid : ghostMaterialInvalid);
+                ghostifyModel(ghostDatas[senderClientId].ghostModule.ModelParent, isGhostValidPosition ? ghostMaterialValid : ghostMaterialInvalid);
             }
         }
 
-        if (!isBuilding && !isDestroying && buildingClientDatas[senderClientId].ghostModule != null)
+        if (!isBuilding && !isDestroying && ghostDatas[senderClientId].ghostModule != null)
         {
-            Destroy(buildingClientDatas[senderClientId].ghostModule.gameObject);
+            Destroy(ghostDatas[senderClientId].ghostModule.gameObject);
         }
     }
 
     private void OnDrawGizmos()
     {
-        foreach (var kvp in buildingClientDatas)
+        foreach (var kvp in ghostDatas)
         {
             ulong clientId = kvp.Key;
             BuildableModule module = kvp.Value.ghostModule;
@@ -236,7 +239,7 @@ public class BuildingManager : NetworkBehaviour
                 Bounds bounds = CalculateTotalBounds(module.ModelParent);
 
                 Collider[] colliders = Physics.OverlapBox(bounds.center, bounds.extents, module.transform.rotation, connectorLayer);
-                Collider[] newColliders = RemoveghostConnector(module, colliders);
+                Collider[] newColliders = RemoveGhostConnector(colliders);
 
                 // 원의 색상 설정
                 Gizmos.color = Color.red;
@@ -254,7 +257,7 @@ public class BuildingManager : NetworkBehaviour
                 }
 
                 // Gizmos를 그릴 때 사용할 색상 설정
-                Gizmos.color = Color.green;
+                Gizmos.color = Color.red;
 
                 // Gizmos의 매트릭스를 오브젝트의 월드 위치와 회전으로 설정합니다.
                 Matrix4x4 rotationMatrix = Matrix4x4.TRS(bounds.center, module.transform.rotation, Vector3.one);
@@ -302,10 +305,10 @@ public class BuildingManager : NetworkBehaviour
     private void checkBuildValidity()
     {
         Bounds bounds = CalculateTotalBounds(ghostModule.ModelParent);
-
+        
         Collider[] colliders = Physics.OverlapBox(bounds.center, bounds.extents, ghostModule.transform.rotation, connectorLayer);
-
-        Collider[] newColliders = RemoveghostConnector(ghostModule, colliders);
+        
+        Collider[] newColliders = RemoveGhostConnector(colliders);
         if (newColliders.Length > 0)
         {
             ghostConnectBuild(newColliders);
@@ -334,6 +337,7 @@ public class BuildingManager : NetworkBehaviour
         Renderer[] renderers = modalParent.GetComponentsInChildren<Renderer>();
 
         Bounds bounds = renderers[0].bounds;
+        
         for (int i = 1; i < renderers.Length; i++)
         {
             bounds.Encapsulate(renderers[i].bounds);
@@ -342,7 +346,7 @@ public class BuildingManager : NetworkBehaviour
         return bounds;
     }
 
-    private Collider[] RemoveghostConnector(BuildableModule ghostBuildGameObject, Collider[] colliders)
+    private Collider[] RemoveGhostConnector(Collider[] colliders)
     {
         return colliders.Where(collider => !collider.GetComponent<Connector>().isGhostParent).ToArray();
     }
@@ -511,26 +515,8 @@ public class BuildingManager : NetworkBehaviour
 
     private BuildableModule getCurrentBuild(Transform transform, int currentBuildableGroupIndex, int currentBuildableIndex)
     {
-        BuildableObject buildableObject = buildableGroups[currentBuildableGroupIndex].buildableObjects[currentBuildableIndex];
-        buildableObject.buildableObject.layer = LayerMask.NameToLayer("Building");
-        switch (currentBuildType)
-        {
-            case BuildType.floor:
-                BuildableModule floorInstance = Instantiate(floorModule, transform.position, transform.rotation);
-                floorInstance.gameObject.name = buildableObject.name;
-                Instantiate(buildableObject.buildableObject, floorInstance.ModelParent.transform);
-
-                return floorInstance;
-
-            case BuildType.wall:
-                BuildableModule wallInstance = Instantiate(wallModule, transform.position, transform.rotation);
-                wallInstance.gameObject.name = buildableObject.name;
-                Instantiate(buildableObject.buildableObject, wallInstance.ModelParent.transform);
-
-                return wallInstance;
-        }
-
-        return null;
+        BuildableModule module = buildableGroups[currentBuildableGroupIndex].buildableModules[currentBuildableIndex];
+        return Instantiate(module, transform.position, transform.rotation);
     }
 
     private void placeBuild()
@@ -566,18 +552,18 @@ public class BuildingManager : NetworkBehaviour
         if (localClientId == senderClientId) { return; }
 
         // because data delay
-        buildingClientDatas[senderClientId].ghostModule.transform.position = ghostPosition;
-        buildingClientDatas[senderClientId].ghostModule.transform.rotation = ghostRotation;
+        ghostDatas[senderClientId].ghostModule.transform.position = ghostPosition;
+        ghostDatas[senderClientId].ghostModule.transform.rotation = ghostRotation;
 
-        foreach (Connector connector in buildingClientDatas[senderClientId].ghostModule.GetComponentsInChildren<Connector>())
+        foreach (Connector connector in ghostDatas[senderClientId].ghostModule.GetComponentsInChildren<Connector>())
         {
             connector.gameObject.SetActive(false);
         }
 
-        BuildableModule newBuild = getCurrentBuild(buildingClientDatas[senderClientId].ghostModule.transform, currentBuildableGroupIndex, currentBuildableIndex);
+        BuildableModule newBuild = getCurrentBuild(ghostDatas[senderClientId].ghostModule.transform, currentBuildableGroupIndex, currentBuildableIndex);
 
-        Destroy(buildingClientDatas[senderClientId].ghostModule.gameObject);
-        buildingClientDatas[senderClientId].ghostModule = null;
+        Destroy(ghostDatas[senderClientId].ghostModule.gameObject);
+        ghostDatas[senderClientId].ghostModule = null;
 
         foreach (Connector connector in newBuild.GetComponentsInChildren<Connector>())
         {
@@ -714,7 +700,7 @@ public enum BuildType
 [Serializable]
 public class BuildableGroup
 {
-    public string buildableGroupName;
-    public List<BuildableObject> buildableObjects;
+    public string groupName;
+    public List<BuildableModule> buildableModules;
 }
 

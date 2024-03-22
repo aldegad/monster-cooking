@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class BuildableModule : MonoBehaviour
 {
+    [Header("Info")]
+    [SerializeField] public string displayName;
+    [SerializeField] public string description;
+    [SerializeField] public Texture2D thumbnailImage;
+    [SerializeField] public BuildType buildType;
+
+    [Header("Ghost Setting")]
     [SerializeField] private GameObject modelParent;
     [SerializeField] private GameObject connectorParent;
     [SerializeField] private bool _isGhost = false;

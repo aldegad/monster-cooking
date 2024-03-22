@@ -7,7 +7,7 @@ public class Connector : MonoBehaviour
 {
     public ConnectorPosition connectorPosition;
     public BuildType connectorParentType;
-    public bool isGhostParent;
+    public bool isGhostParent = false;
 
     [SerializeField] public bool isConnectedToFloor = false;
     [SerializeField] public bool isConnectedToWall = false;
@@ -37,7 +37,7 @@ public class Connector : MonoBehaviour
             Gizmos.color = Color.red;
         }
 
-        Gizmos.DrawWireSphere(transform.position, transform.lossyScale.x / 2f);
+        Gizmos.DrawWireSphere(transform.position, transform.lossyScale.x / 2.5f);
     }
 
     public void updateConnectors(bool rootCall = false)
