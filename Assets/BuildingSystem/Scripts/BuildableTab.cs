@@ -40,6 +40,6 @@ public class BuildableTab : MonoBehaviour
 
     private void OnClick()
     {
-        BuildingManager.Instance.BuildingUI.ChangeBuildableGroup(groupIndex);
+        BuildingManager.Instance.buildingUI.ChangeBuildableGroup(groupIndex);
     }
 }

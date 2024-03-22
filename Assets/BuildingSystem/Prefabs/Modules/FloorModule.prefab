@@ -44,6 +44,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8142550530367066161}
+  - component: {fileID: 3185235569887664791}
+  - component: {fileID: 8518138055585398001}
   - component: {fileID: 1995697266342526133}
   m_Layer: 0
   m_Name: FloorModule
@@ -69,6 +71,58 @@ Transform:
   - {fileID: 6930999871459781710}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3185235569887664791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5025541075930219697}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 3705187956
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!114 &8518138055585398001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5025541075930219697}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c8111edefdb27e4d939b4cc8f9943ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseUnreliableDeltas: 0
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 0
+  SyncScaleY: 0
+  SyncScaleZ: 0
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  Interpolate: 0
+  SlerpPosition: 0
 --- !u!114 &1995697266342526133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -81,8 +135,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 422cae909a7974141b2d9a6cad568aae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  displayName: 
+  description: 
+  thumbnailImage: {fileID: 0}
+  buildType: 0
   modelParent: {fileID: 5714171114361652238}
   connectorParent: {fileID: 3760486974293933829}
+  _isGhost: 0
 --- !u!1 &5714171114361652238
 GameObject:
   m_ObjectHideFlags: 0

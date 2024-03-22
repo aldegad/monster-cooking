@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
-using Cinemachine;
 
 public class PlayerBase : NetworkBehaviour
 {
@@ -19,36 +18,51 @@ public class PlayerBase : NetworkBehaviour
     [SerializeField] private Vector3 crouchLookAt = new Vector3(0f, 0.6f, 0f);
 
     [Header("State")]
-    [SerializeField] public bool isRun = false;
-    [SerializeField] public bool isSprint = false;
-    [SerializeField] public bool isCrouch = false;
+    [SerializeField] private bool _isRun = false;
+    [SerializeField] private bool _isSprint = false;
+    [SerializeField] private bool _isCrouch = false;
 
-    [SerializeField] public bool isJump = false;
+    [SerializeField] private bool _isJump = false;
     [SerializeField] private float jumpDelayTime = 0.1f;
-    [SerializeField] public float remainJumpDelayTime = 0f;
+    [SerializeField] private float _remainJumpDelayTime = 0f;
 
-    [SerializeField] public bool isFall = false;
-    [SerializeField] public bool isGround = false;
-    [SerializeField] public float groundCheckDistance = 0.3f;
+    [SerializeField] private bool _isFall = false;
+    [SerializeField] private bool _isGround = false;
+    [SerializeField] private float groundCheckDistance = 0.3f;
     [SerializeField] private float fallDelayTime = 0.2f;
     [SerializeField] private float remainFallDelayTime = 0f;
 
     private Vector3 previousPosition;
     private Vector3 velocity;
 
+    public NetworkVariable<bool> isRun = new NetworkVariable<bool>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> isSprint = new NetworkVariable<bool>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> isCrouch = new NetworkVariable<bool>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> isJump = new NetworkVariable<bool>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> isFall = new NetworkVariable<bool>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> isGround = new NetworkVariable<bool>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public float remainJumpDelayTime { get { return _remainJumpDelayTime; } private set { _remainJumpDelayTime = value; }}
+
+    private void Awake()
+    {
+        isRun.Value = _isRun;
+        isSprint.Value = _isSprint;
+        isCrouch.Value = _isCrouch;
+        isJump.Value = _isJump;
+        isFall.Value = _isFall;
+        isGround.Value = _isGround;
+    }
     public override void OnNetworkSpawn()
     {
         DontDestroyOnLoad(gameObject);
-        Debug.Log($"PlayerBase OnNetworkSpawn OwnerClientId: ${OwnerClientId} / isOwner: {IsOwner}");
 
         if (!IsOwner) { return; }
         Initialize();
     }
     private void Update()
     {
-        UpdateVelocity();
-
         if (!IsOwner) { return; }
+        UpdateVelocity();
         UpdateState();
     }
 
@@ -74,7 +88,7 @@ public class PlayerBase : NetworkBehaviour
 
         // set to global
         GameManager.Instance.SetCamera(playerFollowCameraInstance);
-        GameManager.Instance.GameState = GameState.Exploration;
+        GameManager.Instance.gameState = GameState.Exploration;
     }
 
     private void UpdateState()
@@ -83,24 +97,24 @@ public class PlayerBase : NetworkBehaviour
         {
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                isRun = false;
-                isSprint = true;
+                isRun.Value = false;
+                isSprint.Value = true;
             }
             else
             {
-                isRun = true;
-                isSprint = false;
+                isRun.Value = true;
+                isSprint.Value = false;
             }
         }
         else
         {
-            isRun = false;
-            isSprint = false;
+            isRun.Value = false;
+            isSprint.Value = false;
         }
 
         if (GameManager.Instance.Input_GetKeyDown_Player(KeyCode.C))
         {
-            isCrouch = !isCrouch;
+            isCrouch.Value = !isCrouch.Value;
         }
 
         UpdateJumpState();
@@ -108,13 +122,12 @@ public class PlayerBase : NetworkBehaviour
         UpdateGroundState();
 
         // update
-        UpdateStateServerRpc(isRun, isSprint, isCrouch, isJump, isFall, isGround, remainJumpDelayTime, remainFallDelayTime);
         ChangeCameraState();
     }
 
     private void ChangeCameraState()
     {
-        if (isCrouch)
+        if (isCrouch.Value)
         {
             follow.transform.localPosition = Vector3.Lerp(follow.transform.localPosition, crouchFollow, 10 * Time.deltaTime);
             lookAt.transform.localPosition = Vector3.Lerp(lookAt.transform.localPosition, crouchLookAt, 10 * Time.deltaTime);
@@ -136,31 +149,31 @@ public class PlayerBase : NetworkBehaviour
 
     private void UpdateJumpState()
     {
-        if (!isJump && isGround)
+        if (!isJump.Value && isGround.Value)
         {
             remainJumpDelayTime -= Time.deltaTime;
         }
 
-        if (GameManager.Instance.Input_GetButton_Player("Jump") && isGround && remainJumpDelayTime <= 0f)
+        if (GameManager.Instance.Input_GetButton_Player("Jump") && isGround.Value && remainJumpDelayTime <= 0f)
         {
-            isJump = true;
+            isJump.Value = true;
         }
 
-        if (isJump)
+        if (isJump.Value)
         {
             remainJumpDelayTime = jumpDelayTime;
             remainFallDelayTime = 0f;
         }
 
-        if (isJump && isFall)
+        if (isJump.Value && isFall.Value)
         {
-            isJump = false;
+            isJump.Value = false;
         }
     }
 
     private void UpdateFallState()
     {
-        if (isGround) {
+        if (isGround.Value) {
             remainFallDelayTime = fallDelayTime;
         }
         else {
@@ -169,11 +182,11 @@ public class PlayerBase : NetworkBehaviour
 
         if (velocity.y < 0 && remainFallDelayTime < 0f)
         {
-            isFall = true;
+            isFall.Value = true;
         }
         else
         {
-            isFall = false;
+            isFall.Value = false;
         }
     }
 
@@ -183,32 +196,11 @@ public class PlayerBase : NetworkBehaviour
 
         if (Physics.Raycast(checkerRay, groundCheckDistance))
         {
-            isGround = true;
+            isGround.Value = true;
         }
         else
         {
-            isGround = false;
+            isGround.Value = false;
         }
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void UpdateStateServerRpc(bool isRun, bool isSprint, bool isCrouch, bool isJump, bool isFall, bool isGround, float remainJumpDelayTime, float remainFallDelayTime)
-    {
-        UpdateStateClientRpc(isRun, isSprint, isCrouch, isJump, isFall, isGround, remainJumpDelayTime, remainFallDelayTime);
-    }
-
-    [ClientRpc]
-    private void UpdateStateClientRpc(bool isRun, bool isSprint, bool isCrouch, bool isJump, bool isFall, bool isGround, float remainJumpDelayTime, float remainFallDelayTime)
-    {
-        if (IsOwner) { return; }
-        // 다른 사람들의 상태 업데이트
-        this.isRun = isRun;
-        this.isSprint = isSprint;
-        this.isCrouch = isCrouch;
-        this.isJump = isJump;
-        this.isFall = isFall;
-        this.isGround = isGround;
-        this.remainJumpDelayTime = remainJumpDelayTime;
-        this.remainFallDelayTime = remainFallDelayTime;
     }
 }

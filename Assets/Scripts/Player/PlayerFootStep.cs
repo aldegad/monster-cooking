@@ -84,12 +84,12 @@ public class PlayerFootStep : MonoBehaviour
 
     private void FootStepChecker()
     {
-        bool isMoving = playerBase.isRun || playerBase.isSprint;
-        if (isMoving && playerBase.isGround)
+        bool isMoving = playerBase.isRun.Value || playerBase.isSprint.Value;
+        if (isMoving && playerBase.isGround.Value)
         {
             float currentFootstepRate = runFootstepRate;
-            if (playerBase.isSprint) { currentFootstepRate = sprintFootstepRate; }
-            if (playerBase.isCrouch) { currentFootstepRate = crouchFootstepRate; }
+            if (playerBase.isSprint.Value) { currentFootstepRate = sprintFootstepRate; }
+            if (playerBase.isCrouch.Value) { currentFootstepRate = crouchFootstepRate; }
 
             if (_nextFootstep >= 100f)
             {

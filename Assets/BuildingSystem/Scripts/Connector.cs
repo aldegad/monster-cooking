@@ -53,11 +53,11 @@ public class Connector : MonoBehaviour
         foreach (Collider collider in colliders)
         {
             if (collider == myCollider) { continue; }
-            if (!collider.gameObject.activeInHierarchy) { continue; }
 
             Connector foundConnector = collider.GetComponent<Connector>();
 
             if (foundConnector == null) { continue; }
+            if (foundConnector.isGhostParent) { continue; }
 
             if (foundConnector.connectorParentType == BuildType.floor)
             {

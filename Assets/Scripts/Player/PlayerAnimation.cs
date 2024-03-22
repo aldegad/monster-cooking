@@ -24,11 +24,11 @@ public class PlayerAnimation : NetworkBehaviour
     private void UpdateAnimation()
     {
         if (!animator) { return; }
-        animator.SetBool("IsRun", playerBase.isRun);
-        animator.SetBool("IsSprint", playerBase.isSprint);
-        animator.SetBool("IsCrouch", playerBase.isCrouch);
-        animator.SetBool("IsJump", playerBase.isJump);
-        animator.SetBool("IsFall", playerBase.isFall);
-        animator.SetBool("IsGround", playerBase.isGround);
+        animator.SetBool("IsRun", playerBase.isRun.Value);
+        animator.SetBool("IsSprint", playerBase.isSprint.Value);
+        animator.SetBool("IsCrouch", playerBase.isCrouch.Value);
+        animator.SetBool("IsJump", playerBase.isJump.Value);
+        animator.SetBool("IsFall", playerBase.isFall.Value);
+        animator.SetBool("IsGround", playerBase.isGround.Value);
     }
 }

@@ -517,7 +517,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4733165603365207224
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1735,7 +1735,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 68084929
+  GlobalObjectIdHash: 160919459
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 0
@@ -1756,7 +1756,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 705a8725be0aadc43a3cbf2ece914e8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  buildableGroups:
+  _buildableGroups:
   - groupName: Etcs
     buildableModules: []
   - groupName: Craftings
@@ -1786,12 +1786,12 @@ MonoBehaviour:
   connectorLayer:
     serializedVersion: 2
     m_Bits: 64
-  buildingUI: {fileID: 6482386542032257111}
-  isDestroying: 0
+  _buildingUI: {fileID: 6482386542032257111}
   ghostMaterialValid: {fileID: 2100000, guid: 839c743af247cef4db3423aaeff37d31, type: 2}
   ghostMaterialInvalid: {fileID: 2100000, guid: 47e6866fe4727da43aca76e6a41e81a3, type: 2}
   maxGroundAngle: 45
   isBuilding: 0
+  isDestroying: 0
   ghostModule: {fileID: 0}
   isGhostValidPosition: 0
   currentGroundAngle: 0

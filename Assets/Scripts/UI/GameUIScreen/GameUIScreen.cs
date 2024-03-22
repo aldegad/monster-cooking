@@ -14,14 +14,14 @@ public class GameUIScreen : MonoBehaviour
             if (gameMenu.gameObject.activeSelf)
             {
                 GameManager.Instance.ResumeCamera();
-                GameManager.Instance.GameState = GameState.Exploration;
+                GameManager.Instance.gameState = GameState.Exploration;
                 gameMenu.gameObject.SetActive(false);
             }
-            else if(GameManager.Instance.GameState == GameState.Exploration)
+            else if(GameManager.Instance.gameState == GameState.Exploration)
             {
                 
                 GameManager.Instance.PauseCamera();
-                GameManager.Instance.GameState = GameState.Menu;
+                GameManager.Instance.gameState = GameState.Menu;
                 gameMenu.gameObject.SetActive(true);
             }
         }

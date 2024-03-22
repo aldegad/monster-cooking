@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Unity.Netcode;
 
 public class PlayerMovement : NetworkBehaviour
@@ -21,7 +20,7 @@ public class PlayerMovement : NetworkBehaviour
     private PlayerBase playerBase;
     private Rigidbody rigid;
 
-    private bool isInitialized = false;
+    private NetworkVariable<bool> isInitialized = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     private Vector3 moveDirection;
     private float speed = 0f;
@@ -38,43 +37,40 @@ public class PlayerMovement : NetworkBehaviour
 
     private void Update()
     {
-        if (SceneManager.GetActiveScene().name != "GameScene") { return; }
-
+        if (GameManager.Instance.gameScene != GameScene.GameScene) { return; }
         if (!IsOwner) { return; }
+        
         initializePosition();
 
-        if (!isInitialized) { return; }
+        if (!isInitialized.Value) { return; }
+
         UpdateSpeed();
         UpdateMoveDirection();
     }
     private void FixedUpdate()
     {
-        if (SceneManager.GetActiveScene().name != "GameScene") { return; }
-
-        if (!IsOwner) { return; }
-        if (!isInitialized) { return; }
+        if (GameManager.Instance.gameScene != GameScene.GameScene) { return; }
+        if (!IsOwner || !isInitialized.Value) { return; }
 
         UpdatePosition();
     }
 
     private void initializePosition()
     {
-        if (isInitialized) { return; }
+        if (isInitialized.Value) { return; }
 
         transform.position = spawnPoint;
+        isInitialized.Value = true;
         initializePositionServerRpc();
     }
-
-    [ServerRpc(RequireOwnership = false)]
+    [ServerRpc]
     private void initializePositionServerRpc()
     {
         initializePositionClientRpc();
     }
-    
     [ClientRpc]
     private void initializePositionClientRpc()
     {
-        isInitialized = true;
         rigid.useGravity = true;
     }
 
@@ -91,8 +87,8 @@ public class PlayerMovement : NetworkBehaviour
 
     private void UpdateSpeed()
     {
-        if (playerBase.isCrouch) { speed = crouchSpeed; return; }
-        if (playerBase.isSprint) { speed = sprintSpeed; return; }
+        if (playerBase.isCrouch.Value) { speed = crouchSpeed; return; }
+        if (playerBase.isSprint.Value) { speed = sprintSpeed; return; }
         speed = runSpeed;
     }
 
@@ -115,7 +111,7 @@ public class PlayerMovement : NetworkBehaviour
         }
 
         // มกวม
-        if (playerBase.isJump && jumpable)
+        if (playerBase.isJump.Value && jumpable)
         {
             jumpable = false;
             rigid.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);

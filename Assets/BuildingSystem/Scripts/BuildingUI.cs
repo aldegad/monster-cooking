@@ -17,9 +17,9 @@ public class BuildingUI : MonoBehaviour
 
     private void Start()
     {
-        for (int i = 0; i < BuildingManager.Instance.BuildableGroups.Count; i++)
+        for (int i = 0; i < BuildingManager.Instance.buildableGroups.Count; i++)
         {
-            BuildableGroup buildableGroup = BuildingManager.Instance.BuildableGroups[i];
+            BuildableGroup buildableGroup = BuildingManager.Instance.buildableGroups[i];
             // set tabs
             BuildableTab buildableTabInstance = Instantiate(buildableTab, buildableTabGroup.transform);
             buildableTabInstances.Add(buildableTabInstance);

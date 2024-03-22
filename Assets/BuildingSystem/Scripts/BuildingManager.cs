@@ -11,17 +11,16 @@ using Unity.Netcode;
 public class BuildingManager : NetworkBehaviour
 {
     [Header("Build Objects")]
-    [SerializeField] private List<BuildableGroup> buildableGroups = new List<BuildableGroup>();
+    [SerializeField] private List<BuildableGroup> _buildableGroups = new List<BuildableGroup>();
 
     [Header("Build Settings")]
     [SerializeField] private LayerMask buildableLayers;
     [SerializeField] private BuildType currentBuildType;
     [SerializeField] private LayerMask buildingLayer;
     [SerializeField] private LayerMask connectorLayer;
-    [SerializeField] private BuildingUI buildingUI;
+    [SerializeField] private BuildingUI _buildingUI;
 
     [Header("Destroy Settings")]
-    [SerializeField] private bool isDestroying = false;
     private Transform lastHitDestroyTransform;
     private List<Material[]> LastHitMaterials = new List<Material[]>();
 
@@ -33,6 +32,7 @@ public class BuildingManager : NetworkBehaviour
 
     [Header("Internal State")]
     [SerializeField] private bool isBuilding = false;
+    [SerializeField] private bool isDestroying = false;
     [SerializeField] private BuildableModule ghostModule;
     [SerializeField] private bool isGhostValidPosition;
     [SerializeField] private float currentGroundAngle;
@@ -47,8 +47,8 @@ public class BuildingManager : NetworkBehaviour
     private bool isInitialized = false;
 
     public static BuildingManager Instance { get; private set; }
-    public List<BuildableGroup> BuildableGroups => buildableGroups;
-    public BuildingUI BuildingUI => buildingUI;
+    public List<BuildableGroup> buildableGroups => _buildableGroups;
+    public BuildingUI buildingUI => _buildingUI;
 
     private void Awake()
     {
@@ -99,10 +99,9 @@ public class BuildingManager : NetworkBehaviour
     {
         if (!isInitialized) { return; }
 
-        // 어차피 얘는 오너거 하나밖에 없음. 플레이어 오브젝트와 달리 각자 하나씩 가지고 있음.
         if (Input.GetKeyDown(KeyCode.B))
         {
-            if (GameManager.Instance.GameState == GameState.Exploration || GameManager.Instance.GameState == GameState.Building)
+            if (GameManager.Instance.gameState == GameState.Exploration || GameManager.Instance.gameState == GameState.Building)
             {
                 toggleBuildingUI(true);
             }
@@ -122,11 +121,11 @@ public class BuildingManager : NetworkBehaviour
             }
         }
 
-        if (GameManager.Instance.GameState == GameState.BuildingUI)
+        if (GameManager.Instance.gameState == GameState.BuildingUI)
         {
             if (Input.GetKeyDown(KeyCode.C))
             {
-                GameManager.Instance.GameState = GameState.Building;
+                GameManager.Instance.gameState = GameState.Building;
                 destroyBuildingToggle(true);
             }
         }
@@ -158,7 +157,7 @@ public class BuildingManager : NetworkBehaviour
             destroyBuildingToggle(false);
         }
 
-        UpdateInternalState();
+        // UpdateInternalState();
     }
 
     private void UpdateInternalState()
@@ -516,7 +515,9 @@ public class BuildingManager : NetworkBehaviour
     private BuildableModule getCurrentBuild(Transform transform, int currentBuildableGroupIndex, int currentBuildableIndex)
     {
         BuildableModule module = buildableGroups[currentBuildableGroupIndex].buildableModules[currentBuildableIndex];
-        return Instantiate(module, transform.position, transform.rotation);
+        BuildableModule moduleInstance = Instantiate(module, transform.position, transform.rotation);
+        moduleInstance.GetComponent<NetworkObject>().Spawn();
+        return moduleInstance;
     }
 
     private void placeBuild()
@@ -528,21 +529,21 @@ public class BuildingManager : NetworkBehaviour
                 connector.gameObject.SetActive(false);
             }
 
-            BuildableModule newBuild = getCurrentBuild(ghostModule.transform, currentBuildableGroupIndex, currentBuildableIndex);
             placeBuildServerRpc(currentBuildableGroupIndex, currentBuildableIndex, ghostModule.transform.position, ghostModule.transform.rotation);
 
             Destroy(ghostModule.gameObject);
             ghostModule = null;
-
-            foreach (Connector connector in newBuild.GetComponentsInChildren<Connector>())
-            {
-                connector.updateConnectors(true);
-            }
         }
     }
     [ServerRpc(RequireOwnership = false)]
     private void placeBuildServerRpc(int currentBuildableGroupIndex, int currentBuildableIndex, Vector3 ghostPosition, Quaternion ghostRotation, ServerRpcParams rpcParams = default)
     {
+        GameObject tempObject = new GameObject();
+        tempObject.transform.position = ghostPosition;
+        tempObject.transform.rotation = ghostRotation;
+
+        BuildableModule newBuild = getCurrentBuild(tempObject.transform, currentBuildableGroupIndex, currentBuildableIndex);
+        newBuild.GetComponent<NetworkObject>().Spawn();
         placeBuildClientRpc(rpcParams.Receive.SenderClientId, currentBuildableGroupIndex, currentBuildableIndex, ghostPosition, ghostRotation);
     }
 
@@ -552,23 +553,13 @@ public class BuildingManager : NetworkBehaviour
         if (localClientId == senderClientId) { return; }
 
         // because data delay
-        ghostDatas[senderClientId].ghostModule.transform.position = ghostPosition;
-        ghostDatas[senderClientId].ghostModule.transform.rotation = ghostRotation;
-
-        foreach (Connector connector in ghostDatas[senderClientId].ghostModule.GetComponentsInChildren<Connector>())
-        {
-            connector.gameObject.SetActive(false);
-        }
-
-        BuildableModule newBuild = getCurrentBuild(ghostDatas[senderClientId].ghostModule.transform, currentBuildableGroupIndex, currentBuildableIndex);
-
         Destroy(ghostDatas[senderClientId].ghostModule.gameObject);
         ghostDatas[senderClientId].ghostModule = null;
 
-        foreach (Connector connector in newBuild.GetComponentsInChildren<Connector>())
+        /* foreach (Connector connector in newBuild.GetComponentsInChildren<Connector>())
         {
             connector.updateConnectors(true);
-        }
+        } */
     }
 
     private void ghostDestroy()
@@ -637,18 +628,18 @@ public class BuildingManager : NetworkBehaviour
     {
         if (active)
         {
-            GameManager.Instance.GameState = GameState.BuildingUI;
+            GameManager.Instance.gameState = GameState.BuildingUI;
             isBuilding = false;
             isDestroying = false;
         }
         else
         {   if (isBuilding || isDestroying)
             {
-                GameManager.Instance.GameState = GameState.Building;
+                GameManager.Instance.gameState = GameState.Building;
             }
             else
             {
-                GameManager.Instance.GameState = GameState.Exploration;
+                GameManager.Instance.gameState = GameState.Exploration;
             }
         }
 
@@ -677,7 +668,7 @@ public class BuildingManager : NetworkBehaviour
 
     public void StartBuildingButton(int buildableGroupIndex, int buildableIndex)
     {
-        GameManager.Instance.GameState = GameState.Building;
+        GameManager.Instance.gameState = GameState.Building;
         currentBuildableGroupIndex = buildableGroupIndex;
         currentBuildableIndex = buildableIndex;
 

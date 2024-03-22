@@ -12,29 +12,33 @@ public class GameManager : NetworkBehaviour
     [SerializeField] public LoadingScreen loadingScreen;
 
     [Header("Scenes")]
-    [SerializeField] public string mainMenuScene = "MainMenuScene";
-    [SerializeField] public string gameScene = "GameScene";
+    [SerializeField] private GameScene _gameScene = GameScene.MainMenuScene;
 
     [Header("Databases")]
     [SerializeField] private GameObject playerPrefab;
+    [SerializeField] private BuildingManager buildingManager;
 
-    [Header("Auto Settings")]
+    [Header("Internal State")]
     [SerializeField] private PlayerFollowCamera playerFollowCamera;
-    [SerializeField] private GameState gameState = GameState.Menu;
-
+    [SerializeField] private GameState _gameState = GameState.Menu;
 
     public static GameManager Instance { get; private set; }
-
-    public GameState GameState
-    {
-        get { return gameState; }
-        set { gameState = value; }
-    }
+    public GameScene gameScene { get { return _gameScene; } private set { _gameScene = value; }}
+    public GameState gameState { get { return _gameState; } set { _gameState = value; }}
+    
 
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
         Instance = this;
+        SceneManager.sceneLoaded += OnSceneLoad;
+    }
+
+    private void OnSceneLoad(Scene scene, LoadSceneMode mode)
+    {
+        GameScene gameScene;
+        Enum.TryParse(scene.name, out gameScene);
+        this.gameScene = gameScene;
     }
 
     public async void StartHost()
@@ -52,7 +56,7 @@ public class GameManager : NetworkBehaviour
 
     public void StartGame()
     {
-        NetworkManager.Singleton.SceneManager.LoadScene(gameScene, LoadSceneMode.Single);
+        NetworkManager.Singleton.SceneManager.LoadScene(GameScene.GameScene.ToString(), LoadSceneMode.Single);
     }
 
     public void SetCamera(PlayerFollowCamera playerFollowCamera)
@@ -77,7 +81,7 @@ public class GameManager : NetworkBehaviour
 
     public float Input_GetAxis_Player(string axisName)
     {
-        if (GameState == GameState.Exploration || GameState == GameState.Building)
+        if (gameState == GameState.Exploration || gameState == GameState.Building)
         {
             return Input.GetAxis(axisName);
         }
@@ -89,7 +93,7 @@ public class GameManager : NetworkBehaviour
 
     public bool Input_GetButton_Player(string buttonName)
     {
-        if (GameState == GameState.Exploration || GameState == GameState.Building)
+        if (gameState == GameState.Exploration || gameState == GameState.Building)
         {
             return Input.GetButton(buttonName);
         }
@@ -101,7 +105,7 @@ public class GameManager : NetworkBehaviour
 
     public bool Input_GetKeyDown_Player(KeyCode keyCode)
     {
-        if (GameState == GameState.Exploration || GameState == GameState.Building)
+        if (gameState == GameState.Exploration || gameState == GameState.Building)
         {
             return Input.GetKeyDown(keyCode);
         }
@@ -112,6 +116,13 @@ public class GameManager : NetworkBehaviour
     }
 }
 
+
+[SerializeField]
+public enum GameScene
+{ 
+    MainMenuScene,
+    GameScene
+}
 
 [Serializable]
 public enum GameState

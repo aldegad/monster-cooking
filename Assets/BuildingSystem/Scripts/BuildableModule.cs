@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class BuildableModule : MonoBehaviour
+public class BuildableModule : NetworkBehaviour
 {
     [Header("Info")]
     [SerializeField] public string displayName;
