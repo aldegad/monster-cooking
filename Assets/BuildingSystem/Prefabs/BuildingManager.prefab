@@ -1735,8 +1735,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 160919459
-  InScenePlacedSourceGlobalObjectIdHash: 0
+  GlobalObjectIdHash: 713527828
+  InScenePlacedSourceGlobalObjectIdHash: 68084929
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 0
   ActiveSceneSynchronization: 0
@@ -1779,7 +1779,6 @@ MonoBehaviour:
   buildableLayers:
     serializedVersion: 2
     m_Bits: 1536
-  currentBuildType: 0
   buildingLayer:
     serializedVersion: 2
     m_Bits: 1024
@@ -1787,14 +1786,12 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   _buildingUI: {fileID: 6482386542032257111}
-  ghostMaterialValid: {fileID: 2100000, guid: 839c743af247cef4db3423aaeff37d31, type: 2}
-  ghostMaterialInvalid: {fileID: 2100000, guid: 47e6866fe4727da43aca76e6a41e81a3, type: 2}
+  _ghostMaterialValid: {fileID: 2100000, guid: 839c743af247cef4db3423aaeff37d31, type: 2}
+  _ghostMaterialInvalid: {fileID: 2100000, guid: 47e6866fe4727da43aca76e6a41e81a3, type: 2}
   maxGroundAngle: 45
   isBuilding: 0
   isDestroying: 0
   ghostModule: {fileID: 0}
-  isGhostValidPosition: 0
   currentGroundAngle: 0
   currentBuildableGroupIndex: 0
   currentBuildableIndex: 0
-  buildings: []

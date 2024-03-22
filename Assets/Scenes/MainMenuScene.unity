@@ -1935,10 +1935,6 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 713527828
       objectReference: {fileID: 0}
-    - target: {fileID: 7456794175833711257, guid: 6972617ef90765043a6bd2c0939ea620, type: 3}
-      propertyPath: InScenePlacedSourceGlobalObjectIdHash
-      value: 68084929
-      objectReference: {fileID: 0}
     - target: {fileID: 8341174820644526540, guid: 6972617ef90765043a6bd2c0939ea620, type: 3}
       propertyPath: m_Pivot.x
       value: 0

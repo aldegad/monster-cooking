@@ -37,7 +37,6 @@ public class BuildableObjectButton : MonoBehaviour, IPointerEnterHandler, IPoint
     }
     private void OnClick()
     {
-        BuildingManager.Instance.ChangeBuildingTypeButton(buildableModule.buildType);
         BuildingManager.Instance.StartBuildingButton(buildableGroupIndex, buildableIndex);
     }
 }
