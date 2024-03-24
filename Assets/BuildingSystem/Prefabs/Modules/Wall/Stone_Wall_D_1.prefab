@@ -78,6 +78,10 @@ PrefabInstance:
       propertyPath: thumbnailImage
       value: 
       objectReference: {fileID: 2800000, guid: 48d10117bec41c949a4743f552c2534f, type: 3}
+    - target: {fileID: 3716579286978170587, guid: ae31ed5c87667b448a845f3c70a701af, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2194637798
+      objectReference: {fileID: 0}
     - target: {fileID: 4941756229448464146, guid: ae31ed5c87667b448a845f3c70a701af, type: 3}
       propertyPath: m_Name
       value: Stone_Wall_D_1

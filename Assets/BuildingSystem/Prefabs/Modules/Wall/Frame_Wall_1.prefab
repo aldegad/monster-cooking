@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -5568390003613663880, guid: 1ef86efac40033f468966257ef70b588, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2142613072
+      objectReference: {fileID: 0}
     - target: {fileID: 3409458882693175673, guid: 1ef86efac40033f468966257ef70b588, type: 3}
       propertyPath: _isGhost
       value: 0
@@ -24,6 +28,22 @@ PrefabInstance:
       propertyPath: thumbnailImage
       value: 
       objectReference: {fileID: 2800000, guid: bdc7287a9c7310b49acdfedcbac235e4, type: 3}
+    - target: {fileID: 3409458882693175673, guid: 1ef86efac40033f468966257ef70b588, type: 3}
+      propertyPath: dropClips.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3409458882693175673, guid: 1ef86efac40033f468966257ef70b588, type: 3}
+      propertyPath: dropClips.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: 432c27872f48c9648b63752cc7c4f02c, type: 3}
+    - target: {fileID: 3409458882693175673, guid: 1ef86efac40033f468966257ef70b588, type: 3}
+      propertyPath: dropClips.Array.data[1]
+      value: 
+      objectReference: {fileID: 8300000, guid: aff571ecd7a304046ac465b1b07c0ee9, type: 3}
+    - target: {fileID: 3409458882693175673, guid: 1ef86efac40033f468966257ef70b588, type: 3}
+      propertyPath: dropClips.Array.data[2]
+      value: 
+      objectReference: {fileID: 8300000, guid: 0675abb3f30918b4f8065db2ab76cbda, type: 3}
     - target: {fileID: 5025541075930219697, guid: 1ef86efac40033f468966257ef70b588, type: 3}
       propertyPath: m_Name
       value: Frame_Wall_1

@@ -70,6 +70,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2418617125642232804, guid: c6d608cd8d25f3443b38b8e237101400, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1882274284
+      objectReference: {fileID: 0}
     - target: {fileID: 4357630075914127333, guid: c6d608cd8d25f3443b38b8e237101400, type: 3}
       propertyPath: displayName
       value: Frame_Wall_2

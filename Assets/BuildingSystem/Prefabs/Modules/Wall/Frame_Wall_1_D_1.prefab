@@ -16,6 +16,10 @@ PrefabInstance:
       propertyPath: thumbnailImage
       value: 
       objectReference: {fileID: 2800000, guid: ecf5e0fc95e84b740a827474dffda0a7, type: 3}
+    - target: {fileID: 4410938080298323666, guid: 548067dac3e731f42973899cfcd06a66, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2985304903
+      objectReference: {fileID: 0}
     - target: {fileID: 5346222322239747867, guid: 548067dac3e731f42973899cfcd06a66, type: 3}
       propertyPath: m_Name
       value: Frame_Wall_1_D_1

@@ -178,17 +178,29 @@ MonoBehaviour:
   crouchFollow: {x: 0, y: 0, z: 0}
   standLookAt: {x: 0, y: 1.068, z: 0}
   crouchLookAt: {x: 0, y: 0.8, z: 0}
-  isRun: 0
-  isSprint: 0
-  isCrouch: 0
-  isJump: 0
+  _isRun: 0
+  _isSprint: 0
+  _isCrouch: 0
+  _isJump: 0
   jumpDelayTime: 0.1
-  remainJumpDelayTime: 0
-  isFall: 0
-  isGround: 0
+  _remainJumpDelayTime: 0
+  _isFall: 0
+  _isGround: 0
   groundCheckDistance: 0.2
   fallDelayTime: 0.5
   remainFallDelayTime: 0
+  isRun:
+    m_InternalValue: 0
+  isSprint:
+    m_InternalValue: 0
+  isCrouch:
+    m_InternalValue: 0
+  isJump:
+    m_InternalValue: 0
+  isFall:
+    m_InternalValue: 0
+  isGround:
+    m_InternalValue: 0
 --- !u!114 &3977907673412264422
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -304,7 +316,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -7857356988044745554, guid: 01ee2ccdf10a6ff4cb398bd923c3ca58, type: 2}
   m_audioClip: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0

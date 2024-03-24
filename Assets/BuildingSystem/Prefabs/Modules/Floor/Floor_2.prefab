@@ -28,9 +28,29 @@ PrefabInstance:
       propertyPath: buildableObject
       value: 
       objectReference: {fileID: 1386713241957844726, guid: 082e10466eef93543854e99987421e7d, type: 3}
+    - target: {fileID: 1995697266342526133, guid: ca70a9518f745cf419c5d8a440cc9125, type: 3}
+      propertyPath: dropClips.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1995697266342526133, guid: ca70a9518f745cf419c5d8a440cc9125, type: 3}
+      propertyPath: dropClips.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: 432c27872f48c9648b63752cc7c4f02c, type: 3}
+    - target: {fileID: 1995697266342526133, guid: ca70a9518f745cf419c5d8a440cc9125, type: 3}
+      propertyPath: dropClips.Array.data[1]
+      value: 
+      objectReference: {fileID: 8300000, guid: aff571ecd7a304046ac465b1b07c0ee9, type: 3}
+    - target: {fileID: 1995697266342526133, guid: ca70a9518f745cf419c5d8a440cc9125, type: 3}
+      propertyPath: dropClips.Array.data[2]
+      value: 
+      objectReference: {fileID: 8300000, guid: 0675abb3f30918b4f8065db2ab76cbda, type: 3}
     - target: {fileID: 3072479959849002719, guid: ca70a9518f745cf419c5d8a440cc9125, type: 3}
       propertyPath: isGhostParent
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3185235569887664791, guid: ca70a9518f745cf419c5d8a440cc9125, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 265018214
       objectReference: {fileID: 0}
     - target: {fileID: 4378748266939064754, guid: ca70a9518f745cf419c5d8a440cc9125, type: 3}
       propertyPath: isGhostParent

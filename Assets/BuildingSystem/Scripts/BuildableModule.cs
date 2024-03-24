@@ -16,6 +16,8 @@ public class BuildableModule : NetworkBehaviour
     [SerializeField] private GameObject _connectorParent;
     [SerializeField] private bool _isGhost = false;
     [SerializeField] private bool _isGhostValidPosition = true;
+    [SerializeField] private AudioClip[] spawnClips;
+    private AudioSource objectAudioSource;
 
     public GameObject modelParent => _modelParent;
     public GameObject connectorParent => _connectorParent;
@@ -31,6 +33,12 @@ public class BuildableModule : NetworkBehaviour
         isGhost.OnValueChanged += IsGhost_OnValueChanged;
         isGhostValidPosition.OnValueChanged += IsGhostValidPosition_OnValueChanged;
     }
+
+    public void PlaySpawnSound()
+    { 
+    
+    }
+
     private void GhostifyModel()
     {
         foreach (Collider modelCollider in modelParent.GetComponentsInChildren<Collider>())

@@ -78,6 +78,10 @@ PrefabInstance:
       propertyPath: thumbnailImage
       value: 
       objectReference: {fileID: 2800000, guid: 0ccb1de8dce12144fb6dc71ab2c98843, type: 3}
+    - target: {fileID: 3947193782110771183, guid: 88718daed95166841aac73c0d68071cd, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3200044148
+      objectReference: {fileID: 0}
     - target: {fileID: 4737905438604275238, guid: 88718daed95166841aac73c0d68071cd, type: 3}
       propertyPath: m_Name
       value: Frame_Wall_2_W

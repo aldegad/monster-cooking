@@ -18,6 +18,7 @@ public class BuildingManager : NetworkBehaviour
     [SerializeField] private LayerMask buildingLayer;
     [SerializeField] private LayerMask connectorLayer;
     [SerializeField] private BuildingUI _buildingUI;
+    [SerializeField] private AudioClip[] buildableSpawnSounds;
 
     [Header("Destroy Settings")]
     private Transform lastHitDestroyTransform;
@@ -403,7 +404,7 @@ public class BuildingManager : NetworkBehaviour
         }
     }
     [ServerRpc(RequireOwnership = false)]
-    private void spawnBuildServerRpc(Vector3 position, Quaternion rotation, int currentBuildableGroupIndex, int currentBuildableIndex, ServerRpcParams rpcParams = default)
+    private void spawnBuildServerRpc(Vector3 position, Quaternion rotation, int currentBuildableGroupIndex, int currentBuildableIndex)
     {
         BuildableModule module = buildableGroups[currentBuildableGroupIndex].buildableModules[currentBuildableIndex];
         BuildableModule moduleInstance = Instantiate(module, position, rotation);
@@ -422,6 +423,7 @@ public class BuildingManager : NetworkBehaviour
         {
             connector.updateConnectors(true);
         }
+        //module.
     }
 
     private void ghostDestroy()

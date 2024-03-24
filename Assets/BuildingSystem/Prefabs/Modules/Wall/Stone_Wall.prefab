@@ -52,6 +52,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Stone_Wall
       objectReference: {fileID: 0}
+    - target: {fileID: 4667730376855347693, guid: d38d53902ae1def4788e7e790542f7d0, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2491075416
+      objectReference: {fileID: 0}
     - target: {fileID: 6714535049732818412, guid: d38d53902ae1def4788e7e790542f7d0, type: 3}
       propertyPath: description
       value: It's a wall. Made of stone.

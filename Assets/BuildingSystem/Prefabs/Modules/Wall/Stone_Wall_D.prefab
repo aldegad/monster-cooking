@@ -122,6 +122,10 @@ PrefabInstance:
       propertyPath: thumbnailImage
       value: 
       objectReference: {fileID: 2800000, guid: 8295374344f01f74ab3c9d72c0dde719, type: 3}
+    - target: {fileID: 8376535153699387651, guid: 90f6bbd7cfb9abf4fb514ab884a5dd86, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 88246011
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 7668091799903971381, guid: 90f6bbd7cfb9abf4fb514ab884a5dd86, type: 3}
