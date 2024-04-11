@@ -6,6 +6,12 @@ using UnityEngine;
 public class AudioManager : MonoBehaviour
 {
     [SerializeField] private List<AudioLayer> audioLayers = new List<AudioLayer>();
+    [SerializeField] private AudioLayer sampleAudio;
+
+    private void Update()
+    {
+        
+    }
 }
 
 
@@ -15,5 +21,6 @@ public class AudioLayer
     public string layerName;
     public AudioClip sound;
     [Range(0f, 1f)]
-    public float volume;
+    public float volume = 1f;
+    public string description;
 }

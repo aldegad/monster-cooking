@@ -12,13 +12,13 @@ public class PlayerFootStep : MonoBehaviour
     [SerializeField] private AudioSource footstepSource;
 
     [Tooltip("Footsteps playing rate")]
-    [SerializeField][Range(1f, 10f)] private float crouchFootstepRate = 0.7f;
+    [SerializeField][Range(0f, 3f)] private float crouchFootstepRate = 0.7f;
 
     [Tooltip("Footsteps playing rate")]
-    [SerializeField][Range(1f, 10f)] private float runFootstepRate = 1f;
+    [SerializeField][Range(0f, 3f)] private float runFootstepRate = 1f;
 
     [Tooltip("Footstep rate when player running")]
-    [SerializeField][Range(1f, 10f)] private float sprintFootstepRate = 1.5f;
+    [SerializeField][Range(0f, 3f)] private float sprintFootstepRate = 1.5f;
 
     [Tooltip("Add textures for this layer and add sounds to be played for this texture")]
     public List<GroundLayer> groundLayers = new List<GroundLayer>();

@@ -41,6 +41,12 @@ public class GameManager : NetworkBehaviour
         this.gameScene = gameScene;
     }
 
+    public void StartSingle()
+    { 
+        ServerManager.Instance.StartSingle();
+        StartGame();
+    }
+
     public async void StartHost()
     {
         loadingScreen.gameObject.SetActive(true);

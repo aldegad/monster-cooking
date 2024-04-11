@@ -28,6 +28,16 @@ public class ServerManager : NetworkBehaviour
         }
     }
 
+    public void StartSingle()
+    {
+        // 연결 승인 처리
+        NetworkManager.Singleton.ConnectionApprovalCallback -= ApprovalCallback;
+        NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCallback;
+
+        StartSingleGame();
+        Debug.Log($"Start Single Game");
+    }
+
     public async Task StartHost()
     {
         // 연결 승인 처리
@@ -102,6 +112,11 @@ public class ServerManager : NetworkBehaviour
         response.Approved = true;
         response.CreatePlayerObject = true;
         response.Pending = false;
+    }
+
+    private bool StartSingleGame()
+    {
+        return NetworkManager.Singleton.StartHost();
     }
 
     private async Task<string> StartHostWithRelay(int maxConnections = 5)
